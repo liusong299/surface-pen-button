@@ -6,6 +6,8 @@ Windows 的“笔快捷方式”只能给单击、双击、长按各绑定一个
 
 [English](README.md)
 
+![设置界面：按钮动作](docs/1-actions-zh.png)
+
 ## 能做什么
 
 | 动作 | 效果 |
@@ -33,6 +35,8 @@ Windows 的“笔快捷方式”只能给单击、双击、长按各绑定一个
 | 双击 | 截图/粘贴交替 |
 | 长按 | `Enter` |
 
+![设置界面：按程序设置](docs/2-per-app-zh.png)
+
 ## 安装
 
 1. 把文件放进一个不会再移动的文件夹，例如 `C:\Tools\PenButton`，双击 `build.bat` 编译（也可以从 Releases 下载编译好的 `PenButton.zip`）。
@@ -50,8 +54,8 @@ exe 没有数字签名，第一次运行时 Windows SmartScreen 可能会提示�
 
 | 页面 | 内容 |
 |---|---|
-| 按钮动作 | 单击、双击、长按的默认动作。设置按键时，点一下按键框，再在键盘上按想要的键或组合键 |
-| 按程序设置 | 按程序或窗口另设动作，可添加、编辑、删除、调整顺序（从上往下，先匹配到的优先） |
+| 按钮动作 | 单击、双击、长按的默认动作。设置按键时，点一下按键框，再在键盘上按想要的键或组合键，按键会以键帽的样子显示 |
+| 按程序设置 | 按程序或窗口另设规则，可添加、编辑、删除、调整顺序（从上往下，先匹配到的优先）。添加时可以从打开的窗口里直接选 |
 | 截图与提示 | 截当前窗口还是整个屏幕、提示音、多久没粘贴就重新截图、小提示的开关和文字 |
 | 高级 | 动作前等待、按键按住时长、日志、用记事本打开 ini、恢复默认 |
 | 绑定到笔 | 三个 exe 的完整路径（可一键复制）和“打开笔设置”按钮 |
@@ -62,7 +66,7 @@ exe 没有数字签名，第一次运行时 Windows SmartScreen 可能会提示�
 |---|---|
 | `src/Core.cs` | 公共部分：ini 的读写、匹配规则、按键名称、取前台窗口信息、Win32 调用 |
 | `src/PenButton.cs` | 笔按钮调用的程序：发按键、截图/粘贴、小提示、日志 |
-| `src/PenButtonSettings.cs` | 设置界面 |
+| `src/PenButtonSettings.cs`、`src/SettingsWindow.xaml` | 设置界面（WPF）。界面布局和样式写在 XAML 里，编译时嵌进 exe，运行时读取，所以不需要 Visual Studio |
 | `build.bat` | 编译出 `PenClick.exe`、`PenDoubleClick.exe`、`PenHold.exe`、`PenButtonSettings.exe` |
 | `PenButton.ini` | 设置文件。第一次按笔或第一次在设置界面保存时自动生成 |
 | `tests/CoreTests.cs` | ini 解析和规则匹配的测试 |
@@ -77,7 +81,8 @@ exe 没有数字签名，第一次运行时 Windows SmartScreen 可能会提示�
 2. 所有程序都编译为 `winexe`。编成控制台程序的话，运行时会弹出黑框并抢走焦点，按键就发不到原来的窗口了。
 3. 只用 .NET Framework 4.x 和 C# 5 的语法（系统自带的 `csc.exe` 版本较老）：不要用 `$"..."`、`?.` 等新语法，也不要引入 NuGet 包。
 4. 动作前的短暂等待（默认 100 ms）是为了让笔按钮事件先结束，不要去掉。
-5. 新的设置项加在 `Core.cs` 的 `KnownSettings` 里，并在设置界面加上对应控件；新的动作类型加在 `ActionSpec` 里，并在 `PenButton.cs` 的 `Actions.Run` 里实现。
+5. 改界面后，GitHub 上的自动构建会把每一页渲染成图片（Actions 里的 screenshots），不用开机器就能检查排版。也可以自己运行 `PenButtonSettings.exe --render 文件夹 --lang zh`。
+6. 新的设置项加在 `Core.cs` 的 `KnownSettings` 里，并在设置界面加上对应控件；新的动作类型加在 `ActionSpec` 里，并在 `PenButton.cs` 的 `Actions.Run` 里实现。
 
 ## 已知限制
 

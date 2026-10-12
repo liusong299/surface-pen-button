@@ -2,7 +2,7 @@ name: build
 
 on:
   push:
-    branches: [main]
+    branches: ['**']
     tags: ['v*']
   pull_request:
 
@@ -22,8 +22,23 @@ jobs:
       - name: Run core tests
         shell: cmd
         run: |
-          "%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\csc.exe" /nologo /r:System.Drawing.dll /out:CoreTests.exe tests\CoreTests.cs src\Core.cs || exit /b 1
+          "%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\csc.exe" /nologo /codepage:65001 /r:System.Drawing.dll /out:CoreTests.exe tests\CoreTests.cs src\Core.cs || exit /b 1
           CoreTests.exe
+
+      - name: Render the settings window to PNG
+        shell: cmd
+        run: |
+          start /wait "" PenButtonSettings.exe --render shots\zh --lang zh --dir "%CD%"
+          start /wait "" PenButtonSettings.exe --render shots\en --lang en --dir "%CD%"
+          if exist shots\zh\error.txt (type shots\zh\error.txt & exit /b 1)
+          if exist shots\en\error.txt (type shots\en\error.txt & exit /b 1)
+          dir shots\zh
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screenshots
+          path: shots
 
       - name: Package
         shell: pwsh

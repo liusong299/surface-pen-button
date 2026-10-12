@@ -1,0 +1,777 @@
+<!--
+  PenButton settings window. Loaded at run time with XamlReader (no XAML compiler needed),
+  so it builds with the csc.exe that ships with Windows.
+  Text in double braces (Chinese§English) is replaced with the Windows UI language before loading.
+  Rows that depend on the ini (gestures, rules, pickers) are built in PenButtonSettings.cs.
+-->
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="PenButton" Width="960" Height="660" MinWidth="860" MinHeight="580"
+        WindowStartupLocation="CenterScreen" Background="#F2F2F5"
+        FontFamily="Segoe UI Variable Text, Segoe UI, Microsoft YaHei UI" FontSize="13.5" Foreground="#1C1C1E"
+        UseLayoutRounding="True" SnapsToDevicePixels="True" TextOptions.TextFormattingMode="Ideal">
+
+  <Window.Resources>
+    <FontFamily x:Key="Icons">Segoe Fluent Icons, Segoe MDL2 Assets</FontFamily>
+    <SolidColorBrush x:Key="Accent" Color="#4F46E5"/>
+    <SolidColorBrush x:Key="AccentSoft" Color="#EEF0FF"/>
+    <SolidColorBrush x:Key="Text2" Color="#6E6E73"/>
+    <SolidColorBrush x:Key="Text3" Color="#A1A1A6"/>
+    <SolidColorBrush x:Key="Line" Color="#ECECF0"/>
+    <SolidColorBrush x:Key="Field" Color="#DCDCE2"/>
+
+    <!-- Text -->
+    <Style x:Key="PageTitle" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="22"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+    </Style>
+    <Style x:Key="PageSub" TargetType="TextBlock">
+      <Setter Property="Foreground" Value="{StaticResource Text2}"/>
+      <Setter Property="TextWrapping" Value="Wrap"/>
+      <Setter Property="Margin" Value="0,6,0,0"/>
+      <Setter Property="MaxWidth" Value="640"/>
+      <Setter Property="HorizontalAlignment" Value="Left"/>
+    </Style>
+    <Style x:Key="H2" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="12.5"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Foreground" Value="{StaticResource Text2}"/>
+      <Setter Property="Margin" Value="4,22,0,8"/>
+    </Style>
+    <Style x:Key="RowTitle" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="14"/>
+      <Setter Property="FontWeight" Value="Medium"/>
+    </Style>
+    <Style x:Key="RowDesc" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="12.5"/>
+      <Setter Property="Foreground" Value="{StaticResource Text2}"/>
+      <Setter Property="TextWrapping" Value="Wrap"/>
+      <Setter Property="Margin" Value="0,3,0,0"/>
+    </Style>
+    <Style x:Key="Unit" TargetType="TextBlock">
+      <Setter Property="Foreground" Value="{StaticResource Text2}"/>
+      <Setter Property="VerticalAlignment" Value="Center"/>
+      <Setter Property="Margin" Value="8,0,0,0"/>
+    </Style>
+
+    <!-- Containers -->
+    <Style x:Key="Section" TargetType="Border">
+      <Setter Property="Background" Value="White"/>
+      <Setter Property="BorderBrush" Value="#E7E7EC"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="12"/>
+    </Style>
+    <Style x:Key="Row" TargetType="Border">
+      <Setter Property="Padding" Value="20,15"/>
+      <Setter Property="BorderBrush" Value="{StaticResource Line}"/>
+      <Setter Property="BorderThickness" Value="0,1,0,0"/>
+    </Style>
+    <Style x:Key="FirstRow" TargetType="Border" BasedOn="{StaticResource Row}">
+      <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+
+    <!-- Buttons -->
+    <Style x:Key="BaseButton" TargetType="Button">
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Height" Value="34"/>
+      <Setter Property="Padding" Value="16,0"/>
+      <Setter Property="FontWeight" Value="Medium"/>
+      <Setter Property="Background" Value="White"/>
+      <Setter Property="BorderBrush" Value="{StaticResource Field}"/>
+      <Setter Property="Foreground" Value="#1C1C1E"/>
+      <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="1" CornerRadius="8" Padding="{TemplateBinding Padding}">
+              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="#F4F4F7"/>
+              </Trigger>
+              <Trigger Property="IsPressed" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="#EAEAEE"/>
+              </Trigger>
+              <Trigger Property="IsEnabled" Value="False">
+                <Setter TargetName="Bd" Property="Opacity" Value="0.45"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style x:Key="Secondary" TargetType="Button" BasedOn="{StaticResource BaseButton}"/>
+    <Style x:Key="Primary" TargetType="Button" BasedOn="{StaticResource BaseButton}">
+      <Setter Property="Background" Value="#18181B"/>
+      <Setter Property="BorderBrush" Value="#18181B"/>
+      <Setter Property="Foreground" Value="White"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="#33333A"/>
+              </Trigger>
+              <Trigger Property="IsPressed" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="#000000"/>
+              </Trigger>
+              <Trigger Property="IsEnabled" Value="False">
+                <Setter TargetName="Bd" Property="Opacity" Value="0.35"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style x:Key="IconButton" TargetType="Button">
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Width" Value="32"/>
+      <Setter Property="Height" Value="32"/>
+      <Setter Property="FontFamily" Value="{StaticResource Icons}"/>
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="Foreground" Value="#55555B"/>
+      <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="Bd" Background="Transparent" CornerRadius="8">
+              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="#EFEFF3"/>
+              </Trigger>
+              <Trigger Property="IsPressed" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="#E4E4E9"/>
+              </Trigger>
+              <Trigger Property="IsEnabled" Value="False">
+                <Setter TargetName="Bd" Property="Opacity" Value="0.3"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <!-- Sidebar navigation -->
+    <Style x:Key="Nav" TargetType="RadioButton">
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Height" Value="40"/>
+      <Setter Property="Margin" Value="0,0,0,4"/>
+      <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+      <Setter Property="Foreground" Value="#3A3A3F"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="RadioButton">
+            <Border x:Name="Bd" Background="Transparent" CornerRadius="9" Padding="12,0">
+              <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock x:Name="Ic" Text="{TemplateBinding Tag}" FontFamily="{StaticResource Icons}" FontSize="15"
+                           VerticalAlignment="Center" Foreground="#6E6E73" Width="22"/>
+                <ContentPresenter VerticalAlignment="Center" Margin="8,0,0,0"/>
+              </StackPanel>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="#E8E8EC"/>
+              </Trigger>
+              <Trigger Property="IsChecked" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="White"/>
+                <Setter TargetName="Bd" Property="Effect">
+                  <Setter.Value>
+                    <DropShadowEffect BlurRadius="10" ShadowDepth="1" Direction="270" Opacity="0.08"/>
+                  </Setter.Value>
+                </Setter>
+                <Setter TargetName="Ic" Property="Foreground" Value="{StaticResource Accent}"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="Foreground" Value="#1C1C1E"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <!-- Segmented control -->
+    <Style x:Key="Segment" TargetType="RadioButton">
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+      <Setter Property="Foreground" Value="#55555B"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="RadioButton">
+            <Border x:Name="Bd" Background="Transparent" CornerRadius="7" Padding="14,6">
+              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsChecked" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="White"/>
+                <Setter TargetName="Bd" Property="Effect">
+                  <Setter.Value>
+                    <DropShadowEffect BlurRadius="6" ShadowDepth="1" Direction="270" Opacity="0.12"/>
+                  </Setter.Value>
+                </Setter>
+                <Setter Property="Foreground" Value="#1C1C1E"/>
+                <Setter Property="FontWeight" Value="Medium"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style x:Key="SegmentHost" TargetType="Border">
+      <Setter Property="Background" Value="#EFEFF2"/>
+      <Setter Property="CornerRadius" Value="9"/>
+      <Setter Property="Padding" Value="3"/>
+      <Setter Property="HorizontalAlignment" Value="Right"/>
+      <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <!-- Toggle switch -->
+    <Style x:Key="Switch" TargetType="CheckBox">
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+      <Setter Property="HorizontalAlignment" Value="Right"/>
+      <Setter Property="VerticalAlignment" Value="Center"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="CheckBox">
+            <Border x:Name="Track" Width="42" Height="24" CornerRadius="12" Background="#D1D1D6">
+              <Ellipse x:Name="Knob" Width="20" Height="20" Fill="White" HorizontalAlignment="Left" Margin="2,0,0,0">
+                <Ellipse.Effect>
+                  <DropShadowEffect BlurRadius="4" ShadowDepth="1" Direction="270" Opacity="0.25"/>
+                </Ellipse.Effect>
+              </Ellipse>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsChecked" Value="True">
+                <Setter TargetName="Track" Property="Background" Value="{StaticResource Accent}"/>
+                <Setter TargetName="Knob" Property="HorizontalAlignment" Value="Right"/>
+                <Setter TargetName="Knob" Property="Margin" Value="0,0,2,0"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <!-- Text box (Tag = placeholder) -->
+    <Style TargetType="TextBox">
+      <Setter Property="Height" Value="34"/>
+      <Setter Property="Padding" Value="10,0"/>
+      <Setter Property="VerticalContentAlignment" Value="Center"/>
+      <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+      <Setter Property="Tag" Value=""/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="TextBox">
+            <Border x:Name="Bd" Background="White" BorderBrush="{StaticResource Field}" BorderThickness="1" CornerRadius="8">
+              <Grid>
+                <TextBlock x:Name="Ph" Text="{TemplateBinding Tag}" Foreground="{StaticResource Text3}"
+                           Margin="12,0,0,0" VerticalAlignment="Center" Visibility="Collapsed" IsHitTestVisible="False"/>
+                <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" VerticalAlignment="Center"
+                              HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"/>
+              </Grid>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="Text" Value="">
+                <Setter TargetName="Ph" Property="Visibility" Value="Visible"/>
+              </Trigger>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Bd" Property="BorderBrush" Value="#BDBDC6"/>
+              </Trigger>
+              <Trigger Property="IsKeyboardFocused" Value="True">
+                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Accent}"/>
+                <Setter TargetName="Bd" Property="BorderThickness" Value="1.5"/>
+              </Trigger>
+              <Trigger Property="IsReadOnly" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="#F7F7F9"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <!-- Drop-down -->
+    <Style x:Key="SelectToggle" TargetType="ToggleButton">
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ToggleButton">
+            <Border x:Name="Bd" Background="White" BorderBrush="{StaticResource Field}" BorderThickness="1" CornerRadius="8">
+              <Path HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,1,13,0" Data="M0,0 L4.5,4.5 L9,0"
+                    Stroke="#6E6E73" StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Bd" Property="BorderBrush" Value="#BDBDC6"/>
+              </Trigger>
+              <Trigger Property="IsChecked" Value="True">
+                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Accent}"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style TargetType="ComboBox">
+      <Setter Property="Height" Value="34"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ComboBox">
+            <Grid>
+              <ToggleButton Style="{StaticResource SelectToggle}" Focusable="False" ClickMode="Press"
+                            IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"/>
+              <ContentPresenter IsHitTestVisible="False" Margin="12,0,32,0" VerticalAlignment="Center"
+                                Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"/>
+              <Popup IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom" AllowsTransparency="True" Focusable="False"
+                     PopupAnimation="Fade" VerticalOffset="-4" HorizontalOffset="-10">
+                <Border Background="White" CornerRadius="10" BorderBrush="#E3E3E8" BorderThickness="1" Padding="4" Margin="10"
+                        MinWidth="{TemplateBinding ActualWidth}">
+                  <Border.Effect>
+                    <DropShadowEffect BlurRadius="20" ShadowDepth="4" Direction="270" Opacity="0.14"/>
+                  </Border.Effect>
+                  <ScrollViewer MaxHeight="340" VerticalScrollBarVisibility="Auto">
+                    <ItemsPresenter/>
+                  </ScrollViewer>
+                </Border>
+              </Popup>
+            </Grid>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style TargetType="ComboBoxItem">
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ComboBoxItem">
+            <Border x:Name="Bd" Background="Transparent" CornerRadius="7" Padding="10,7">
+              <ContentPresenter/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsHighlighted" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="#F2F2F5"/>
+              </Trigger>
+              <Trigger Property="IsSelected" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="{StaticResource AccentSoft}"/>
+                <Setter Property="Foreground" Value="{StaticResource Accent}"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <!-- List (window picker) -->
+    <Style TargetType="ListBoxItem">
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ListBoxItem">
+            <Border x:Name="Bd" Background="Transparent" CornerRadius="8" Padding="12,8" Margin="0,1">
+              <ContentPresenter/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="#F2F2F5"/>
+              </Trigger>
+              <Trigger Property="IsSelected" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="{StaticResource AccentSoft}"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <!-- Slim scroll bar -->
+    <Style x:Key="SlimThumb" TargetType="Thumb">
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Thumb">
+            <Border CornerRadius="3" Background="#C9C9CF"/>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style TargetType="ScrollBar">
+      <Setter Property="Width" Value="10"/>
+      <Setter Property="MinWidth" Value="10"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ScrollBar">
+            <Track x:Name="PART_Track" IsDirectionReversed="True" Margin="2,4">
+              <Track.Thumb>
+                <Thumb Style="{StaticResource SlimThumb}"/>
+              </Track.Thumb>
+            </Track>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+      <Style.Triggers>
+        <Trigger Property="Orientation" Value="Horizontal">
+          <Setter Property="Width" Value="Auto"/>
+          <Setter Property="MinWidth" Value="0"/>
+          <Setter Property="Height" Value="10"/>
+          <Setter Property="Template">
+            <Setter.Value>
+              <ControlTemplate TargetType="ScrollBar">
+                <Track x:Name="PART_Track" Margin="4,2">
+                  <Track.Thumb>
+                    <Thumb Style="{StaticResource SlimThumb}"/>
+                  </Track.Thumb>
+                </Track>
+              </ControlTemplate>
+            </Setter.Value>
+          </Setter>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+  </Window.Resources>
+
+  <Grid x:Name="Root" Background="#F2F2F5">
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="236"/>
+      <ColumnDefinition Width="*"/>
+    </Grid.ColumnDefinitions>
+
+    <!-- Sidebar -->
+    <DockPanel Grid.Column="0" Margin="16,16,10,16">
+      <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="8,4,0,26">
+        <Border Width="36" Height="36" CornerRadius="10" Background="#18181B">
+          <Canvas Width="18" Height="18" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <!-- pen -->
+            <Path Data="M3,15 L4.2,10.8 L12.6,2.4 A1.5,1.5 0 0 1 14.7,2.4 L15.6,3.3 A1.5,1.5 0 0 1 15.6,5.4 L7.2,13.8 Z"
+                  Stroke="White" StrokeThickness="1.6" StrokeLineJoin="Round"/>
+            <Ellipse Canvas.Left="12.2" Canvas.Top="11.6" Width="4.2" Height="4.2" Fill="#8B85FF"/>
+          </Canvas>
+        </Border>
+        <StackPanel Margin="11,0,0,0" VerticalAlignment="Center">
+          <TextBlock Text="PenButton" FontWeight="SemiBold" FontSize="15"/>
+          <TextBlock Text="{{Surface 笔按钮§Surface Pen button}}" Foreground="{StaticResource Text2}" FontSize="12"/>
+        </StackPanel>
+      </StackPanel>
+      <TextBlock x:Name="VersionText" DockPanel.Dock="Bottom" Foreground="{StaticResource Text3}" FontSize="12" Margin="12,0,0,2"/>
+      <StackPanel>
+        <RadioButton x:Name="Nav0" Style="{StaticResource Nav}" GroupName="nav" Tag="&#xE765;" Content="{{按钮动作§Actions}}" IsChecked="True"/>
+        <RadioButton x:Name="Nav1" Style="{StaticResource Nav}" GroupName="nav" Tag="&#xE71D;" Content="{{按程序设置§Per app}}"/>
+        <RadioButton x:Name="Nav2" Style="{StaticResource Nav}" GroupName="nav" Tag="&#xE722;" Content="{{截图与提示§Snip & label}}"/>
+        <RadioButton x:Name="Nav3" Style="{StaticResource Nav}" GroupName="nav" Tag="&#xE713;" Content="{{高级§Advanced}}"/>
+        <RadioButton x:Name="Nav4" Style="{StaticResource Nav}" GroupName="nav" Tag="&#xE71B;" Content="{{绑定到笔§Pen setup}}"/>
+      </StackPanel>
+    </DockPanel>
+
+    <!-- Content panel -->
+    <Border Grid.Column="1" Margin="0,12,12,12" Background="#FAFAFB" CornerRadius="14" BorderBrush="#E4E4E9" BorderThickness="1">
+      <Border.Effect>
+        <DropShadowEffect BlurRadius="24" ShadowDepth="2" Direction="270" Opacity="0.05"/>
+      </Border.Effect>
+      <Grid>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="*"/>
+          <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="36,30,36,4">
+          <TextBlock x:Name="PageTitle" Style="{StaticResource PageTitle}"/>
+          <TextBlock x:Name="PageSub" Style="{StaticResource PageSub}"/>
+        </StackPanel>
+
+        <Grid Grid.Row="1">
+          <!-- 0: Actions -->
+          <ScrollViewer x:Name="Page0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Margin="36,18,36,28">
+              <Border Style="{StaticResource Section}">
+                <StackPanel x:Name="GestureRows"/>
+              </Border>
+              <Border Margin="0,16,0,0" Background="#F3F4FF" CornerRadius="10" Padding="16,13">
+                <DockPanel>
+                  <TextBlock DockPanel.Dock="Left" Text="&#xE946;" FontFamily="{StaticResource Icons}" Foreground="{StaticResource Accent}"
+                             FontSize="14" Margin="0,2,12,0"/>
+                  <StackPanel>
+                    <TextBlock TextWrapping="Wrap" Foreground="#3F3F46"
+                               Text="{{设置按键：点一下按键框，再在键盘上按想要的键或组合键，比如 Enter 或 Ctrl+Enter。只按右边的 Alt 会记成 RAlt，可以用来唤起 Typeless 等语音输入。§To set keys, click the key box and press the key or combo, for example Enter or Ctrl+Enter. The right Alt key alone is recorded as RAlt, handy for voice-typing apps.}}"/>
+                    <TextBlock TextWrapping="Wrap" Foreground="#3F3F46" Margin="0,6,0,0"
+                               Text="{{截图/粘贴交替：第一次把当前窗口截图到剪贴板，第二次粘贴，第三次又截图，依此类推。§Snip, then paste: the first press copies a screenshot of the current window, the second press pastes it, the third snips again, and so on.}}"/>
+                  </StackPanel>
+                </DockPanel>
+              </Border>
+            </StackPanel>
+          </ScrollViewer>
+
+          <!-- 1: Per-app rules -->
+          <ScrollViewer x:Name="Page1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Visibility="Collapsed">
+            <StackPanel Margin="36,18,36,28">
+              <DockPanel Margin="0,0,0,12">
+                <Button x:Name="AddRule" DockPanel.Dock="Right" Style="{StaticResource Primary}">
+                  <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="&#xE710;" FontFamily="{StaticResource Icons}" FontSize="12" VerticalAlignment="Center" Margin="0,1,8,0"/>
+                    <TextBlock Text="{{添加规则§Add rule}}"/>
+                  </StackPanel>
+                </Button>
+                <TextBlock x:Name="RuleCount" Foreground="{StaticResource Text2}" VerticalAlignment="Center"/>
+              </DockPanel>
+              <StackPanel x:Name="RulesList"/>
+              <Border x:Name="RulesEmpty" Style="{StaticResource Section}" Padding="24,36" Visibility="Collapsed">
+                <StackPanel HorizontalAlignment="Center">
+                  <TextBlock Text="&#xE71D;" FontFamily="{StaticResource Icons}" FontSize="26" Foreground="{StaticResource Text3}" HorizontalAlignment="Center"/>
+                  <TextBlock Text="{{还没有按程序设置§No per-app rules yet}}" FontWeight="Medium" Margin="0,12,0,0" HorizontalAlignment="Center"/>
+                  <TextBlock Text="{{例如：在 Outlook 里长按发 Ctrl+Enter§For example: in Outlook, hold = Ctrl+Enter}}" Foreground="{StaticResource Text2}" Margin="0,4,0,0" HorizontalAlignment="Center"/>
+                </StackPanel>
+              </Border>
+            </StackPanel>
+          </ScrollViewer>
+
+          <!-- 2: Snip & label -->
+          <ScrollViewer x:Name="Page2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Visibility="Collapsed">
+            <StackPanel Margin="36,4,36,28">
+              <TextBlock Style="{StaticResource H2}" Text="{{截图§Screenshot}}"/>
+              <Border Style="{StaticResource Section}">
+                <StackPanel>
+                  <Border Style="{StaticResource FirstRow}">
+                    <DockPanel>
+                      <Border DockPanel.Dock="Right" Style="{StaticResource SegmentHost}">
+                        <StackPanel Orientation="Horizontal">
+                          <RadioButton x:Name="SnipWindow" Style="{StaticResource Segment}" GroupName="snip" Content="{{当前窗口§Window}}"/>
+                          <RadioButton x:Name="SnipScreen" Style="{StaticResource Segment}" GroupName="snip" Content="{{整个屏幕§Screen}}"/>
+                        </StackPanel>
+                      </Border>
+                      <StackPanel>
+                        <TextBlock Style="{StaticResource RowTitle}" Text="{{截图范围§What to capture}}"/>
+                        <TextBlock Style="{StaticResource RowDesc}" Text="{{当前窗口不含阴影和边框；整个屏幕是窗口所在的那块显示器§The window without its shadow, or the whole monitor it is on}}"/>
+                      </StackPanel>
+                    </DockPanel>
+                  </Border>
+                  <Border Style="{StaticResource Row}">
+                    <DockPanel>
+                      <CheckBox x:Name="SnipSound" DockPanel.Dock="Right" Style="{StaticResource Switch}"/>
+                      <StackPanel>
+                        <TextBlock Style="{StaticResource RowTitle}" Text="{{截图提示音§Sound after a screenshot}}"/>
+                        <TextBlock Style="{StaticResource RowDesc}" Text="{{截好后播放一声系统提示音§Plays a short system sound}}"/>
+                      </StackPanel>
+                    </DockPanel>
+                  </Border>
+                  <Border Style="{StaticResource Row}">
+                    <DockPanel>
+                      <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBox x:Name="ResetSec" Width="84"/>
+                        <TextBlock Style="{StaticResource Unit}" Text="{{秒§s}}"/>
+                      </StackPanel>
+                      <StackPanel Margin="0,0,16,0">
+                        <TextBlock Style="{StaticResource RowTitle}" Text="{{过期重新截图§Snip again after}}"/>
+                        <TextBlock Style="{StaticResource RowDesc}" Text="{{截图后超过这个时间还没粘贴，下次就重新截图。0 表示一直交替§If a screenshot is older than this, the next press snips again instead of pasting. 0 = always alternate}}"/>
+                      </StackPanel>
+                    </DockPanel>
+                  </Border>
+                </StackPanel>
+              </Border>
+
+              <TextBlock Style="{StaticResource H2}" Text="{{小提示§Label}}"/>
+              <Border Style="{StaticResource Section}">
+                <StackPanel>
+                  <Border Style="{StaticResource FirstRow}">
+                    <DockPanel>
+                      <CheckBox x:Name="ToastOn" DockPanel.Dock="Right" Style="{StaticResource Switch}"/>
+                      <StackPanel>
+                        <TextBlock Style="{StaticResource RowTitle}" Text="{{显示小提示§Show a label}}"/>
+                        <TextBlock Style="{StaticResource RowDesc}" Text="{{截图或粘贴后，在笔尖旁边短暂显示“已截图”或“已粘贴”，不会抢走输入焦点§Briefly shows “Captured” or “Pasted” next to the pen; it never takes focus}}"/>
+                      </StackPanel>
+                    </DockPanel>
+                  </Border>
+                  <Border Style="{StaticResource Row}">
+                    <DockPanel>
+                      <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBox x:Name="ToastMs" Width="84"/>
+                        <TextBlock Style="{StaticResource Unit}" Text="{{毫秒§ms}}"/>
+                      </StackPanel>
+                      <TextBlock Style="{StaticResource RowTitle}" VerticalAlignment="Center" Text="{{显示时长§Show for}}"/>
+                    </DockPanel>
+                  </Border>
+                  <Border Style="{StaticResource Row}">
+                    <DockPanel>
+                      <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBox x:Name="ToastSnip" Width="110"/>
+                        <TextBox x:Name="ToastPaste" Width="110" Margin="8,0,0,0"/>
+                      </StackPanel>
+                      <StackPanel Margin="0,0,16,0">
+                        <TextBlock Style="{StaticResource RowTitle}" Text="{{提示文字§Label text}}"/>
+                        <TextBlock Style="{StaticResource RowDesc}" Text="{{留空时跟随 Windows 语言§Leave empty to follow the Windows language}}"/>
+                      </StackPanel>
+                    </DockPanel>
+                  </Border>
+                </StackPanel>
+              </Border>
+            </StackPanel>
+          </ScrollViewer>
+
+          <!-- 3: Advanced -->
+          <ScrollViewer x:Name="Page3" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Visibility="Collapsed">
+            <StackPanel Margin="36,4,36,28">
+              <TextBlock Style="{StaticResource H2}" Text="{{时间§Timing}}"/>
+              <Border Style="{StaticResource Section}">
+                <StackPanel>
+                  <Border Style="{StaticResource FirstRow}">
+                    <DockPanel>
+                      <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBox x:Name="PreDelay" Width="84"/>
+                        <TextBlock Style="{StaticResource Unit}" Text="{{毫秒§ms}}"/>
+                      </StackPanel>
+                      <StackPanel Margin="0,0,16,0">
+                        <TextBlock Style="{StaticResource RowTitle}" Text="{{动作前等待§Wait before acting}}"/>
+                        <TextBlock Style="{StaticResource RowDesc}" Text="{{让笔按钮事件先结束，一般不用改§Lets the pen-button event finish first; rarely needs changing}}"/>
+                      </StackPanel>
+                    </DockPanel>
+                  </Border>
+                  <Border Style="{StaticResource Row}">
+                    <DockPanel>
+                      <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBox x:Name="KeyHold" Width="84"/>
+                        <TextBlock Style="{StaticResource Unit}" Text="{{毫秒§ms}}"/>
+                      </StackPanel>
+                      <StackPanel Margin="0,0,16,0">
+                        <TextBlock Style="{StaticResource RowTitle}" Text="{{按键按住时长§Hold keys for}}"/>
+                        <TextBlock Style="{StaticResource RowDesc}" Text="{{某个程序收不到按键时调大，例如 300§Raise it (for example to 300) if an app misses the key}}"/>
+                      </StackPanel>
+                    </DockPanel>
+                  </Border>
+                </StackPanel>
+              </Border>
+
+              <TextBlock Style="{StaticResource H2}" Text="{{排查问题§Troubleshooting}}"/>
+              <Border Style="{StaticResource Section}">
+                <StackPanel>
+                  <Border Style="{StaticResource FirstRow}">
+                    <DockPanel>
+                      <CheckBox x:Name="LogOn" DockPanel.Dock="Right" Style="{StaticResource Switch}"/>
+                      <StackPanel Margin="0,0,16,0">
+                        <TextBlock Style="{StaticResource RowTitle}" Text="{{记录日志§Log every press}}"/>
+                        <TextBlock Style="{StaticResource RowDesc}" Text="{{每次按笔时记下程序名、窗口类名、标题和执行的动作，写进 PenButton.log。不知道某个窗口叫什么时很有用§Writes the program, window class, title and action of each press to PenButton.log. Useful for finding a window’s name}}"/>
+                      </StackPanel>
+                    </DockPanel>
+                  </Border>
+                  <Border Style="{StaticResource Row}">
+                    <WrapPanel>
+                      <Button x:Name="OpenLog" Style="{StaticResource Secondary}" Margin="0,0,8,0" Content="{{打开日志§Open log}}"/>
+                      <Button x:Name="OpenIni" Style="{StaticResource Secondary}" Margin="0,0,8,0" Content="{{用记事本打开 ini§Open ini in Notepad}}"/>
+                      <Button x:Name="Restore" Style="{StaticResource Secondary}" Content="{{恢复默认设置§Restore defaults}}"/>
+                    </WrapPanel>
+                  </Border>
+                </StackPanel>
+              </Border>
+            </StackPanel>
+          </ScrollViewer>
+
+          <!-- 4: Pen setup -->
+          <ScrollViewer x:Name="Page4" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Visibility="Collapsed">
+            <StackPanel Margin="36,18,36,28">
+              <Border Style="{StaticResource Section}" Padding="20,18">
+                <StackPanel>
+                  <StackPanel x:Name="Steps"/>
+                  <Button x:Name="OpenPen" Style="{StaticResource Primary}" HorizontalAlignment="Left" Margin="36,16,0,0">
+                    <StackPanel Orientation="Horizontal">
+                      <TextBlock Text="&#xE8A7;" FontFamily="{StaticResource Icons}" FontSize="12" VerticalAlignment="Center" Margin="0,1,8,0"/>
+                      <TextBlock Text="{{打开笔设置§Open pen settings}}"/>
+                    </StackPanel>
+                  </Button>
+                </StackPanel>
+              </Border>
+              <TextBlock Style="{StaticResource H2}" Text="{{要选择的程序§Programs to pick}}"/>
+              <Border Style="{StaticResource Section}">
+                <StackPanel x:Name="ExeRows"/>
+              </Border>
+            </StackPanel>
+          </ScrollViewer>
+        </Grid>
+
+        <!-- Footer -->
+        <Border Grid.Row="2" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0" Padding="36,14">
+          <DockPanel>
+            <Button x:Name="Save" DockPanel.Dock="Right" Style="{StaticResource Primary}" MinWidth="96" Content="{{保存§Save}}"/>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+              <Ellipse x:Name="DirtyDot" Width="7" Height="7" Fill="#F59E0B" Margin="0,0,8,0" VerticalAlignment="Center" Visibility="Collapsed"/>
+              <TextBlock x:Name="Status" Foreground="{StaticResource Text2}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+            </StackPanel>
+          </DockPanel>
+        </Border>
+      </Grid>
+    </Border>
+
+    <!-- Rule editor (overlay) -->
+    <Grid x:Name="EditorOverlay" Grid.ColumnSpan="2" Background="#4D0F0F14" Visibility="Collapsed">
+      <Border Width="600" Margin="0,20" VerticalAlignment="Center" HorizontalAlignment="Center" Background="White" CornerRadius="16" Padding="4,4">
+        <Border.Effect>
+          <DropShadowEffect BlurRadius="40" ShadowDepth="8" Direction="270" Opacity="0.22"/>
+        </Border.Effect>
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="24,20,24,20">
+          <TextBlock x:Name="EditorTitle" FontSize="18" FontWeight="SemiBold"/>
+          <TextBlock Style="{StaticResource RowDesc}" Margin="0,4,0,18"
+                     Text="{{在匹配的程序或窗口里，用下面的动作代替默认动作§In matching programs or windows, these actions replace the defaults}}"/>
+
+          <TextBlock Style="{StaticResource RowTitle}" FontSize="13" Text="{{匹配方式§Match by}}" Margin="0,0,0,8"/>
+          <Border Style="{StaticResource SegmentHost}" HorizontalAlignment="Left">
+            <StackPanel Orientation="Horizontal">
+              <RadioButton x:Name="KindApp" Style="{StaticResource Segment}" GroupName="kind" Content="{{程序名§Program}}"/>
+              <RadioButton x:Name="KindClass" Style="{StaticResource Segment}" GroupName="kind" Content="{{窗口类名§Window class}}"/>
+              <RadioButton x:Name="KindTitle" Style="{StaticResource Segment}" GroupName="kind" Content="{{窗口标题包含§Title contains}}"/>
+            </StackPanel>
+          </Border>
+          <TextBox x:Name="Pattern" Margin="0,10,0,0" Tag="{{例如 OUTLOOK.EXE，多个用 | 隔开§e.g. OUTLOOK.EXE; separate several with |}}"/>
+          <WrapPanel Margin="0,10,0,0">
+            <Button x:Name="PickWindow" Style="{StaticResource Secondary}" Height="30" Padding="12,0" Margin="0,0,8,0" FontWeight="Normal"
+                    Content="{{从打开的窗口中选…§Pick an open window…}}"/>
+            <Button x:Name="GrabWindow" Style="{StaticResource Secondary}" Height="30" Padding="12,0" FontWeight="Normal"
+                    Content="{{3 秒后读取当前窗口§Read the active window in 3 s}}"/>
+          </WrapPanel>
+          <TextBlock x:Name="Picked" Style="{StaticResource RowDesc}" Margin="0,8,0,0" Visibility="Collapsed"/>
+
+          <TextBlock Style="{StaticResource RowTitle}" FontSize="13" Text="{{说明（可不填）§Note (optional)}}" Margin="0,18,0,8"/>
+          <TextBox x:Name="Comment"/>
+
+          <Border Margin="0,20,0,0" Background="#FAFAFB" BorderBrush="#ECECF0" BorderThickness="1" CornerRadius="12" Padding="16,6">
+            <StackPanel x:Name="EditorGestures"/>
+          </Border>
+
+          <TextBlock x:Name="EditorError" Foreground="#DC2626" Margin="0,12,0,0" TextWrapping="Wrap" Visibility="Collapsed"/>
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button x:Name="EditorCancel" Style="{StaticResource Secondary}" MinWidth="88" Margin="0,0,8,0" Content="{{取消§Cancel}}"/>
+            <Button x:Name="EditorOk" Style="{StaticResource Primary}" MinWidth="88" Content="{{确定§OK}}"/>
+          </StackPanel>
+        </StackPanel>
+        </ScrollViewer>
+      </Border>
+    </Grid>
+
+    <!-- Window picker (overlay on top of the editor) -->
+    <Grid x:Name="PickerOverlay" Grid.ColumnSpan="2" Background="#330F0F14" Visibility="Collapsed">
+      <Border Width="620" Height="460" VerticalAlignment="Center" HorizontalAlignment="Center" Background="White" CornerRadius="16" Padding="24,22">
+        <Border.Effect>
+          <DropShadowEffect BlurRadius="40" ShadowDepth="8" Direction="270" Opacity="0.22"/>
+        </Border.Effect>
+        <DockPanel>
+          <StackPanel DockPanel.Dock="Top">
+            <TextBlock FontSize="18" FontWeight="SemiBold" Text="{{选择窗口§Pick a window}}"/>
+            <TextBlock Style="{StaticResource RowDesc}" Margin="0,4,0,12"
+                       Text="{{PowerPoint 放映窗口要先开始放映才会出现在这里§A PowerPoint slide show only appears here while it is running}}"/>
+          </StackPanel>
+          <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0">
+            <Button x:Name="PickerCancel" Style="{StaticResource Secondary}" MinWidth="88" Margin="0,0,8,0" Content="{{取消§Cancel}}"/>
+            <Button x:Name="PickerOk" Style="{StaticResource Primary}" MinWidth="88" Content="{{选择§Select}}"/>
+          </StackPanel>
+          <Border BorderBrush="#ECECF0" BorderThickness="1" CornerRadius="10" Padding="4">
+            <ListBox x:Name="PickerList" BorderThickness="0" Background="Transparent"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"/>
+          </Border>
+        </DockPanel>
+      </Border>
+    </Grid>
+  </Grid>
+</Window>

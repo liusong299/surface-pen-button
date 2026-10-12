@@ -6,6 +6,8 @@ Windows lets each of the three pen-button gestures (single click, double-click, 
 
 [中文说明](README.zh-CN.md)
 
+![Settings window: actions](docs/1-actions-en.png)
+
 ## What it can do
 
 | Action | What happens |
@@ -22,6 +24,8 @@ After a screenshot or paste, a small label ("Captured" / "Pasted") shows next to
 
 - PowerPoint slide show: click = next slide, double-click = previous slide (set up by default)
 - Outlook: press and hold = `Ctrl+Enter` (send) instead of `Enter`
+
+![Settings window: per-app rules](docs/2-per-app-en.png)
 
 Rules match by program name (`OUTLOOK.EXE`), window class (`screenClass`) or text in the window title (`Gmail`). In the settings window you can pick the window from a list, or switch to it and let the tool read it after a 3-second countdown.
 
@@ -110,7 +114,7 @@ Not sure what a window is called? Turn on `Log=true`, press the pen button in th
 build.bat
 ```
 
-Sources are in `src/`: `Core.cs` (ini model, rules, key names, Win32), `PenButton.cs` (the button program), `PenButtonSettings.cs` (the settings window). Keep to C# 5 syntax (no `$""`, no `?.`) so the built-in compiler can build it. `tests/CoreTests.cs` covers the ini parser and rule matching; CI builds and runs it on Windows.
+Sources are in `src/`: `Core.cs` (ini model, rules, key names, Win32), `PenButton.cs` (the button program), `PenButtonSettings.cs` and `SettingsWindow.xaml` (the settings window, WPF). The XAML is embedded as a resource and loaded with `XamlReader`, so no XAML compiler or Visual Studio is needed. Keep to C# 5 syntax (no `$""`, no `?.`) so the built-in compiler can build it. `tests/CoreTests.cs` covers the ini parser and rule matching. CI builds on Windows, runs the tests, and renders every page of the settings window to PNG (`PenButtonSettings.exe --render <folder> --lang en|zh`) so layout changes can be reviewed without a screen.
 
 ## License
 

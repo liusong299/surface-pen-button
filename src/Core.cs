@@ -24,7 +24,7 @@ static class AppInfo
 // Very small UI-language helper: Chinese if Windows is set to Chinese, otherwise English.
 static class L
 {
-    public static readonly bool Zh = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "zh";
+    public static bool Zh = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "zh";
     public static string T(string zh, string en) { return Zh ? zh : en; }
 }
 
@@ -324,7 +324,8 @@ class Config
         Rule show = new Rule();
         show.Kind = "class";
         show.Patterns = new string[] { "screenClass", "PodiumParent" };
-        show.Comment = "PowerPoint slide show and Presenter View: click = next slide, double-click = previous slide";
+        show.Comment = L.T("PowerPoint 放映和演示者视图：单击下一页，双击上一页",
+                           "PowerPoint slide show and Presenter View: click = next slide, double-click = previous slide");
         show.Values[Gestures.Click] = "keys:Right";
         show.Values[Gestures.DoubleClick] = "keys:Left";
         c.Rules.Add(show);

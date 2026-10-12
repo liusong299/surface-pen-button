@@ -14,7 +14,11 @@ if not exist "%CSC%" (
     goto fail
 )
 
-set "OPTS=/nologo /target:winexe /optimize+ /r:System.Windows.Forms.dll /r:System.Drawing.dll"
+for %%I in ("%CSC%") do set "FW=%%~dpI"
+
+REM /codepage:65001 = the sources are UTF-8 (they contain Chinese text).
+set "OPTS=/nologo /target:winexe /optimize+ /codepage:65001 /r:System.Windows.Forms.dll /r:System.Drawing.dll"
+set "WPF=/lib:"%FW%WPF" /r:PresentationFramework.dll /r:PresentationCore.dll /r:WindowsBase.dll /r:System.Xaml.dll"
 
 "%CSC%" %OPTS% /out:PenClick.exe src\PenButton.cs src\Core.cs
 if errorlevel 1 goto fail
@@ -25,7 +29,7 @@ if errorlevel 1 goto fail
 copy /y PenClick.exe PenHold.exe >nul
 if errorlevel 1 goto fail
 
-"%CSC%" %OPTS% /out:PenButtonSettings.exe src\PenButtonSettings.cs src\Core.cs
+"%CSC%" %OPTS% %WPF% /resource:src\SettingsWindow.xaml,SettingsWindow.xaml /out:PenButtonSettings.exe src\PenButtonSettings.cs src\Core.cs
 if errorlevel 1 goto fail
 
 echo.
