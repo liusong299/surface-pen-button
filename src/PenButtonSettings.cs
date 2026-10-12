@@ -642,19 +642,22 @@ class SettingsUi
         if (cfg.Warnings.Count > 0)
             SetStatus(L.T("ini 里有 ", "The ini has ") + cfg.Warnings.Count +
                       L.T(" 行无法识别，保存时会被去掉", " unreadable line(s); they will be dropped on save"), true);
+        int startPage = 0;
         if (created && !rendering)
         {
             SetStatus(L.T("已在本文件夹生成三个按钮程序，请到“绑定到笔”页完成绑定", "Created the three button programs in this folder. See Pen setup to bind them."), false);
-            ShowPage(4);
+            startPage = 4;
         }
-        if (exeError != null) { SetStatus(exeError, true); ShowPage(4); }
+        if (exeError != null) { SetStatus(exeError, true); startPage = 4; }
         else if (ButtonExes.LooksTemporary(dir))
         {
             SetStatus(L.T("PenButton.exe 现在在临时文件夹里。请先把它放到一个固定的文件夹（例如 C:\\Tools\\PenButton）再运行",
                           "PenButton.exe is in a temporary folder. Move it to a folder that will stay put (e.g. C:\\Tools\\PenButton) and run it again."), true);
-            ShowPage(4);
+            startPage = 4;
         }
 
+        // Pick the first page once the window has loaded; WPF resets the radio buttons on load.
+        Win.Loaded += delegate { ShowPage(startPage); };
         Win.SourceInitialized += delegate { OnSourceInitialized(); };
         Win.Closing += OnClosing;
         countdown.Interval = TimeSpan.FromSeconds(1);

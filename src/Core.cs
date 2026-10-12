@@ -14,7 +14,7 @@ using System.Text;
 
 static class AppInfo
 {
-    public const string Version = "2.1.0";
+    public const string Version = "2.1.1";
     public const string MainExe = "PenButton.exe";
     public const string IniName = "PenButton.ini";
     public const string ClickExe = "PenClick.exe";
