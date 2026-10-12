@@ -331,8 +331,8 @@ class KeyRecorder : Border
         {
             case Key.LeftCtrl: return "Ctrl";
             case Key.RightCtrl: return "RCtrl";
-            case Key.LeftShift:
-            case Key.RightShift: return "Shift";
+            case Key.LeftShift: return "Shift";
+            case Key.RightShift: return "RShift";
             case Key.LeftAlt: return "Alt";
             case Key.RightAlt: return "RAlt";
             case Key.LWin:

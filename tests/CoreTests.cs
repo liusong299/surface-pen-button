@@ -87,6 +87,9 @@ static class CoreTests
         Check(k.Count == 3 && k[0].Vk == 0x11 && k[2].Vk == 0x27 && k[2].Extended, "combo parsed with extended flag");
         Check(KeyNames.ParseCombo("RAlt")[0].Vk == 0xA5 && KeyNames.ParseCombo("RAlt")[0].Extended, "RAlt is extended 0xA5");
         Check(KeyNames.ParseCombo("enter")[0].Vk == 0x0D, "key names are case-insensitive");
+        List<KeyDef> chord = KeyNames.ParseCombo("RAlt+RShift");
+        Check(chord[1].Vk == 0xA1 && chord[1].Scan == 0x36, "RShift is the right Shift key (VK 0xA1, scan 0x36)");
+        Check(chord[0].IsModifier && chord[1].IsModifier && !KeyNames.ParseCombo("Enter")[0].IsModifier, "modifier detection");
 
         Console.WriteLine(fails == 0 ? "\nALL PASSED" : "\n" + fails + " FAILED");
         return fails;

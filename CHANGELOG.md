@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.3.4
+
+- The key recorder tells the right Shift key apart from the left one (recorded as "Right Shift"), and the right Shift is sent with its own scan code
+- A chord of modifier keys only (for example Right Alt + Right Shift, Typeless's translate shortcut) is released in the order it was pressed, so the app does not see the first key released on its own
+
 ## 2.3.3
 
 - No PowerPoint rule by default: PowerPoint already handles the pen button in slide shows (press = next, hold = previous) and takes the button over there, so the rule did not apply and was confusing. The README explains how to use PenButton's own rule instead
