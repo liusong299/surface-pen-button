@@ -832,8 +832,8 @@ class SettingsUi
                 "Open Settings > Bluetooth & devices > Pen & Windows Ink > Pen shortcuts."),
             L.T("单击、双击、长按分别选“打开程序”，再选下面对应的程序。",
                 "For single click, double-click and press and hold, choose “Open a program” and pick the matching program below."),
-            L.T("如果 PowerPoint 等程序自己接管了笔按钮，关掉同一页里的“允许应用替代快捷方式按钮行为”。",
-                "If an app such as PowerPoint takes over the pen button, turn off “Allow apps to override the shortcut button behavior” on the same page."),
+            L.T("PowerPoint 放映时会自己处理笔按钮（按一下下一页，长按上一页）。想让 PenButton 的设置在所有程序里都生效，就关掉同一页里的“允许应用替代快捷方式按钮行为”。",
+                "In a slide show, PowerPoint handles the pen button itself (press for the next slide, hold for the previous one). To have PenButton's actions everywhere, turn off “Allow apps to override the shortcut button behavior” on the same page."),
         };
         for (int i = 0; i < lines.Length; i++)
         {

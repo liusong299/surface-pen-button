@@ -24,17 +24,20 @@ static class CoreTests
         Check(d.Resolve(Gestures.Click, W("WINWORD.EXE", "OpusApp", "Doc"), out rule) == "keys:RAlt", "default click = RAlt");
         Check(d.Resolve(Gestures.DoubleClick, W("WINWORD.EXE", "OpusApp", "Doc"), out rule) == "snippaste", "default double = snippaste");
         Check(d.Resolve(Gestures.Hold, W("WINWORD.EXE", "OpusApp", "Doc"), out rule) == "keys:Enter", "default hold = Enter");
-        Check(d.Resolve(Gestures.Click, W("POWERPNT.EXE", "screenClass", "Slide Show"), out rule) == "keys:Right", "slideshow click = Right");
-        Check(d.Resolve(Gestures.DoubleClick, W("POWERPNT.EXE", "PodiumParent", "Presenter"), out rule) == "keys:Left", "presenter double = Left");
-        Check(d.Resolve(Gestures.Hold, W("POWERPNT.EXE", "screenClass", "Slide Show"), out rule) == "keys:Enter" && rule == "Default", "slideshow hold falls back to default");
-        Check(d.Resolve(Gestures.Click, W("POWERPNT.EXE", "PPTFrameClass", "Edit"), out rule) == "keys:RAlt", "PowerPoint editing uses default");
+        Check(d.Rules.Count == 0, "no per-app rules by default");
+        Check(d.Resolve(Gestures.Click, W("POWERPNT.EXE", "screenClass", "Slide Show"), out rule) == "keys:RAlt" && rule == "Default", "slide show uses the defaults");
+        Config pp = Config.Parse("; PowerPoint slide show\n[class:screenClass|PodiumParent]\nClick=keys:Right\nDoubleClick=keys:Left\n\n[Default]\nClick=keys:RAlt\nHold=keys:Enter\n");
+        Check(pp.Resolve(Gestures.Click, W("POWERPNT.EXE", "screenClass", "Slide Show"), out rule) == "keys:Right", "class rule: click = Right");
+        Check(pp.Resolve(Gestures.DoubleClick, W("POWERPNT.EXE", "PodiumParent", "Presenter"), out rule) == "keys:Left", "second class pattern matches");
+        Check(pp.Resolve(Gestures.Hold, W("POWERPNT.EXE", "screenClass", "Slide Show"), out rule) == "keys:Enter" && rule == "Default", "unset gesture falls back to default");
+        Check(pp.Resolve(Gestures.Click, W("POWERPNT.EXE", "PPTFrameClass", "Edit"), out rule) == "keys:RAlt", "other window class uses default");
 
         // Round trip
         string ini = d.ToIni();
         Config r = Config.Parse(ini);
         Check(r.ToIni() == ini, "ToIni -> Parse -> ToIni is stable");
         Check(r.Warnings.Count == 0, "default ini has no warnings");
-        Check(r.Rules.Count == 1 && r.Rules[0].Comment.StartsWith("PowerPoint"), "rule comment kept");
+        Check(Config.Parse(pp.ToIni()).Rules[0].Comment == "PowerPoint slide show", "rule comment kept on save");
 
         // Hand-written ini with app/title rules, order and fallbacks
         string hand =
