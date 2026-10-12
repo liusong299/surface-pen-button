@@ -82,7 +82,6 @@ class ActionSpec
     public const string Snip = "snip";
     public const string Paste = "paste";
     public const string Run = "run";
-    public const string Laser = "laser";   // virtual laser pointer, toggled on/off
     public const string Raw = "raw";       // anything we do not understand; kept as written
 
     public string Type = None;
@@ -98,7 +97,6 @@ class ActionSpec
         else if (lower == "snippaste") { a.Type = SnipPaste; }
         else if (lower == "snip") { a.Type = Snip; }
         else if (lower == "paste") { a.Type = Paste; }
-        else if (lower == "laser") { a.Type = Laser; }
         else if (lower.StartsWith("run:")) { a.Type = Run; a.Arg = t.Substring(4).Trim(); }
         else { a.Type = Raw; a.Arg = t; }
         return a;
@@ -119,7 +117,6 @@ class ActionSpec
         if (Type == SnipPaste) return L.T("截图/粘贴交替", "Snip / paste");
         if (Type == Snip) return L.T("截图", "Snip");
         if (Type == Paste) return L.T("粘贴", "Paste");
-        if (Type == Laser) return L.T("激光笔", "Laser pointer");
         if (Type == Run) return L.T("运行 ", "Run ") + Path.GetFileName(Arg.Trim('"'));
         return Arg;
     }
@@ -289,10 +286,6 @@ class Config
         new SettingDef("ToastMs", "800", "How long the label stays (ms)"),
         new SettingDef("ToastSnipText", "", "Label text. Leave empty to follow the Windows language (Chinese or English)."),
         new SettingDef("ToastPasteText", "", null),
-        new SettingDef("LaserColor", "#FF3B30", "Laser pointer color (#RRGGBB)"),
-        new SettingDef("LaserSize", "22", "Laser dot size in pixels at 100% scaling"),
-        new SettingDef("LaserHideMs", "2500", "Fade the dot out when the pen has not moved for this long (ms). 0 = never."),
-        new SettingDef("LaserAutoOffMinutes", "10", "Turn the laser off by itself after this many minutes without movement. 0 = never."),
         new SettingDef("Log", "false", "Write every press (program, window class, title, action) to PenButton.log"),
     };
 
@@ -306,7 +299,6 @@ class Config
 ;   snippaste       1st press: screenshot to clipboard, 2nd press: paste (Ctrl+V), and so on
 ;   snip            screenshot to clipboard every time
 ;   paste           paste (Ctrl+V)
-;   laser           laser pointer on/off: a glowing dot follows the pen while it hovers over the screen
 ;   run:<program>   start a program, e.g. run:notepad.exe
 ;   none            do nothing
 ;
@@ -332,11 +324,9 @@ class Config
         Rule show = new Rule();
         show.Kind = "class";
         show.Patterns = new string[] { "screenClass", "PodiumParent" };
-        show.Comment = "PowerPoint slide show and Presenter View: click = next slide, double-click = previous slide,\n" +
-                       "press and hold = laser pointer on/off";
+        show.Comment = "PowerPoint slide show and Presenter View: click = next slide, double-click = previous slide";
         show.Values[Gestures.Click] = "keys:Right";
         show.Values[Gestures.DoubleClick] = "keys:Left";
-        show.Values[Gestures.Hold] = "laser";
         c.Rules.Add(show);
 
         c.Default = new Rule();
@@ -639,24 +629,8 @@ static class Native
     [DllImport("dwmapi.dll")]
     public static extern int DwmSetWindowAttribute(IntPtr hWnd, int attr, ref int value, int size);
 
-    [DllImport("user32.dll", SetLastError = true)]
-    public static extern bool UpdateLayeredWindow(IntPtr hwnd, IntPtr hdcDst, ref POINT pptDst, ref SIZE psize,
-        IntPtr hdcSrc, ref POINT pprSrc, int crKey, ref BLENDFUNCTION pblend, int dwFlags);
-    [DllImport("user32.dll")] public static extern IntPtr GetDC(IntPtr hWnd);
-    [DllImport("user32.dll")] public static extern int ReleaseDC(IntPtr hWnd, IntPtr hDC);
-    [DllImport("gdi32.dll")] public static extern IntPtr CreateCompatibleDC(IntPtr hDC);
-    [DllImport("gdi32.dll")] public static extern bool DeleteDC(IntPtr hdc);
-    [DllImport("gdi32.dll")] public static extern IntPtr SelectObject(IntPtr hDC, IntPtr hObject);
-    [DllImport("gdi32.dll")] public static extern bool DeleteObject(IntPtr hObject);
-
     [StructLayout(LayoutKind.Sequential)] public struct RECT { public int Left, Top, Right, Bottom; }
-    [StructLayout(LayoutKind.Sequential)] public struct POINT { public int X, Y; public POINT(int x, int y) { X = x; Y = y; } }
-    [StructLayout(LayoutKind.Sequential)] public struct SIZE { public int CX, CY; public SIZE(int cx, int cy) { CX = cx; CY = cy; } }
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public struct BLENDFUNCTION { public byte BlendOp, BlendFlags, SourceConstantAlpha, AlphaFormat; }
-    public const int ULW_ALPHA = 2;
-    public const byte AC_SRC_OVER = 0, AC_SRC_ALPHA = 1;
-    public const int WS_EX_LAYERED = 0x00080000;
+    [StructLayout(LayoutKind.Sequential)] struct POINT { public int X, Y; }
 
     public const int DWMWA_EXTENDED_FRAME_BOUNDS = 9;
     public const int DWMWA_WINDOW_CORNER_PREFERENCE = 33;
@@ -681,7 +655,7 @@ static class Native
     {
         try
         {
-            POINT pt = new POINT(p.X, p.Y);
+            POINT pt; pt.X = p.X; pt.Y = p.Y;
             IntPtr mon = MonitorFromPoint(pt, 2);   // MONITOR_DEFAULTTONEAREST
             uint dx, dy;
             if (GetDpiForMonitor(mon, 0, out dx, out dy) == 0 && dx > 0) return dx;

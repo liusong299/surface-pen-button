@@ -217,7 +217,6 @@ class ActionEditor : UserControl
         type.Items.Add(new Item(ActionSpec.SnipPaste, L.T("截图/粘贴交替", "Snip, then paste")));
         type.Items.Add(new Item(ActionSpec.Snip, L.T("只截图", "Snip only")));
         type.Items.Add(new Item(ActionSpec.Paste, L.T("粘贴", "Paste")));
-        type.Items.Add(new Item(ActionSpec.Laser, L.T("激光笔（开/关）", "Laser pointer (on/off)")));
         type.Items.Add(new Item(ActionSpec.Run, L.T("运行程序", "Run a program")));
         type.Items.Add(new Item(ActionSpec.None, L.T("无动作", "Nothing")));
         type.Items.Add(new Item(ActionSpec.Raw, L.T("自定义（ini 原文）", "Custom (ini text)")));
@@ -334,9 +333,7 @@ class MainForm : Form
     ListView rulesView;
     RadioButton snipWindow, snipScreen;
     CheckBox snipSound, toastOn, logOn;
-    NumericUpDown resetSec, toastMs, preDelay, keyHold, laserSize, laserHide, laserOff;
-    Button laserColorBtn;
-    Color laserColor;
+    NumericUpDown resetSec, toastMs, preDelay, keyHold;
     TextBox toastSnip, toastPaste;
     Label status;
 
@@ -364,7 +361,6 @@ class MainForm : Form
         tabs.TabPages.Add(BuildDefaultsTab());
         tabs.TabPages.Add(BuildRulesTab());
         tabs.TabPages.Add(BuildSnipTab());
-        tabs.TabPages.Add(BuildLaserTab());
         tabs.TabPages.Add(BuildAdvancedTab());
         tabs.TabPages.Add(BuildBindTab());
 
@@ -549,74 +545,6 @@ class MainForm : Form
         return p;
     }
 
-    TabPage BuildLaserTab()
-    {
-        TabPage p = Page(L.T("激光笔", "Laser"));
-        Label intro = PenButtonSettings.Text(L.T(
-            "把某个按法设成“激光笔（开/关）”：按一次打开，屏幕上出现一个发光的点跟着笔尖走；再按一次关闭。" +
-            "笔要悬停在屏幕上方（大约 1 到 2 厘米以内）才能被追踪。共享整个屏幕时（Teams、Zoom 等）对方也能看到。",
-            "Set a gesture to \"Laser pointer (on/off)\": press once and a glowing dot follows the pen tip; press again to turn it off. " +
-            "The pen is tracked while it hovers just above the screen (about 1 to 2 cm). People see it when you share your whole screen in Teams, Zoom and similar."), 680);
-
-        laserColorBtn = PenButtonSettings.Btn(L.T("选择颜色…", "Choose color..."), delegate { PickLaserColor(); });
-        laserSize = Num(6, 120);
-        laserHide = Num(0, 60000);
-        laserHide.Increment = 500;
-        laserOff = Num(0, 600);
-        laserSize.ValueChanged += delegate { MarkDirty(); };
-        laserHide.ValueChanged += delegate { MarkDirty(); };
-        laserOff.ValueChanged += delegate { MarkDirty(); };
-
-        TableLayoutPanel t = PenButtonSettings.Table(1);
-        t.Padding = new Padding(0, 8, 0, 0);
-        t.Controls.Add(Row(PenButtonSettings.Text(L.T("颜色", "Color"), 0), laserColorBtn));
-        t.Controls.Add(Row(PenButtonSettings.Text(L.T("大小（像素，100% 缩放时）", "Size (pixels at 100% scaling)"), 0), laserSize));
-        t.Controls.Add(Row(PenButtonSettings.Text(L.T("笔停住超过", "Fade out after"), 0), laserHide,
-                           PenButtonSettings.Text(L.T("毫秒后淡出，一动就重新出现（0 = 不淡出）", "ms without movement; it comes back when the pen moves (0 = never)"), 0)));
-        t.Controls.Add(Row(PenButtonSettings.Text(L.T("笔停住超过", "Turn off after"), 0), laserOff,
-                           PenButtonSettings.Text(L.T("分钟后自动关闭（0 = 不自动关闭）", "minutes without movement (0 = never)"), 0)));
-        Label hint = Hint(L.T("提示：可以在“按程序设置”里只让 PowerPoint 放映时的某个按法打开激光笔。",
-                              "Tip: on the Per program tab you can use the laser only in a PowerPoint slide show."));
-        hint.MaximumSize = new Size(680, 0);
-        t.Controls.Add(hint);
-        Stack(p, intro, t);
-        return p;
-    }
-
-    void PickLaserColor()
-    {
-        using (ColorDialog d = new ColorDialog())
-        {
-            d.Color = laserColor;
-            d.FullOpen = true;
-            if (d.ShowDialog(this) != DialogResult.OK) return;
-            laserColor = d.Color;
-            ShowLaserColor();
-            MarkDirty();
-        }
-    }
-
-    void ShowLaserColor()
-    {
-        laserColorBtn.BackColor = laserColor;
-        laserColorBtn.ForeColor = (laserColor.R * 299 + laserColor.G * 587 + laserColor.B * 114) / 1000 > 140 ? Color.Black : Color.White;
-        laserColorBtn.Text = ColorHex(laserColor);
-    }
-
-    static string ColorHex(Color c) { return "#" + c.R.ToString("X2") + c.G.ToString("X2") + c.B.ToString("X2"); }
-
-    static Color ParseHex(string s, Color def)
-    {
-        try
-        {
-            s = (s ?? "").Trim().TrimStart('#');
-            if (s.Length != 6) return def;
-            int v = int.Parse(s, System.Globalization.NumberStyles.HexNumber);
-            return Color.FromArgb((v >> 16) & 255, (v >> 8) & 255, v & 255);
-        }
-        catch (Exception) { return def; }
-    }
-
     TabPage BuildAdvancedTab()
     {
         TabPage p = Page(L.T("高级", "Advanced"));
@@ -749,11 +677,6 @@ class MainForm : Form
             SetNum(preDelay, cfg.GetInt("PreDelayMs", 100));
             SetNum(keyHold, cfg.GetInt("KeyHoldMs", 40));
             logOn.Checked = cfg.GetBool("Log", false);
-            laserColor = ParseHex(cfg.GetString("LaserColor", "#FF3B30"), Color.FromArgb(255, 59, 48));
-            ShowLaserColor();
-            SetNum(laserSize, cfg.GetInt("LaserSize", 22));
-            SetNum(laserHide, cfg.GetInt("LaserHideMs", 2500));
-            SetNum(laserOff, cfg.GetInt("LaserAutoOffMinutes", 10));
         }
         finally { loading = false; }
         dirty = false;
@@ -778,10 +701,6 @@ class MainForm : Form
         cfg.Settings["PreDelayMs"] = ((int)preDelay.Value).ToString();
         cfg.Settings["KeyHoldMs"] = ((int)keyHold.Value).ToString();
         cfg.Settings["Log"] = logOn.Checked ? "true" : "false";
-        cfg.Settings["LaserColor"] = ColorHex(laserColor);
-        cfg.Settings["LaserSize"] = ((int)laserSize.Value).ToString();
-        cfg.Settings["LaserHideMs"] = ((int)laserHide.Value).ToString();
-        cfg.Settings["LaserAutoOffMinutes"] = ((int)laserOff.Value).ToString();
     }
 
     bool SaveNow()

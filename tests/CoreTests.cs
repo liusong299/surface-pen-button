@@ -24,10 +24,7 @@ static class CoreTests
         Check(d.Resolve(Gestures.Hold, W("WINWORD.EXE", "OpusApp", "Doc"), out rule) == "keys:Enter", "default hold = Enter");
         Check(d.Resolve(Gestures.Click, W("POWERPNT.EXE", "screenClass", "Slide Show"), out rule) == "keys:Right", "slideshow click = Right");
         Check(d.Resolve(Gestures.DoubleClick, W("POWERPNT.EXE", "PodiumParent", "Presenter"), out rule) == "keys:Left", "presenter double = Left");
-        Check(d.Resolve(Gestures.Hold, W("POWERPNT.EXE", "screenClass", "Slide Show"), out rule) == "laser", "slideshow hold = laser");
-        Check(d.Resolve(Gestures.Hold, W("POWERPNT.EXE", "PPTFrameClass", "Edit"), out rule) == "keys:Enter" && rule == "Default", "PowerPoint editing hold falls back to default");
-        Check(ActionSpec.Parse("laser").Type == ActionSpec.Laser && ActionSpec.Parse("Laser").ToString() == "laser", "laser action parsed");
-        Check(Config.Parse(d.ToIni()).Rules[0].Comment.Contains("laser"), "two-line rule comment kept");
+        Check(d.Resolve(Gestures.Hold, W("POWERPNT.EXE", "screenClass", "Slide Show"), out rule) == "keys:Enter" && rule == "Default", "slideshow hold falls back to default");
         Check(d.Resolve(Gestures.Click, W("POWERPNT.EXE", "PPTFrameClass", "Edit"), out rule) == "keys:RAlt", "PowerPoint editing uses default");
 
         // Round trip
