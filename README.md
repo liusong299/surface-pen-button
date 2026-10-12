@@ -1,126 +1,165 @@
-<img src="docs/icon.png" width="96" align="right" alt="PenButton icon">
+<img src="docs/icon.png" width="88" align="right" alt="PenButton icon">
 
 # PenButton
 
-A small, dependency-free tool that give the **Surface Pen top button** more useful actions on Windows 11.
+**Give the Surface Pen's top button the actions you actually want.**
 
-Windows lets each of the three pen-button gestures (single click, double-click, press and hold) open one program. PenButton is that program, and it is a single `PenButton.exe`. What it does is set in a simple settings window (or an `.ini` file), and it can do something different depending on the app you are in.
+[中文说明](README.zh-CN.md) · [Download PenButton.exe](https://github.com/liusong299/surface-pen-button/releases/latest/download/PenButton.exe) · [All releases](https://github.com/liusong299/surface-pen-button/releases)
 
-[中文说明](README.zh-CN.md)
+![PenButton settings window](docs/screens/en/1-actions.png)
 
-![Settings window: actions](docs/1-actions-en.png)
+Windows lets each of the three pen-button gestures (click, double-click, press and hold) open one program. PenButton is that program. Pick what each gesture does in a simple window, and it can even do something different in each app.
 
-## What it can do
+- **Press any key or combo.** Right Alt to start voice typing (Typeless and similar apps), Enter to send a message, Ctrl+Enter to send an email, arrow keys, F-keys.
+- **Snip, then paste.** The first press copies a screenshot of the window you are in; the next press pastes it. A small label next to the pen says "Captured" or "Pasted".
+- **Per-app rules.** For example, in a PowerPoint slide show: click = next slide, double-click = previous slide (set up out of the box).
+- **One small file, nothing to install.** No admin rights, no background process. It updates itself from this page.
+- **English and Chinese**, switchable at the bottom left of the window.
 
-| Action | What happens |
+Made for Windows 11 and pens with a shortcut (top) button, such as the Surface Pen and Surface Slim Pen. Windows 10 should work too but is not tested.
+
+---
+
+## Get started (2 minutes)
+
+### 1. Download
+
+Download **[PenButton.exe](https://github.com/liusong299/surface-pen-button/releases/latest/download/PenButton.exe)** and put it in a folder that will stay put, for example `C:\Tools\PenButton`.
+
+> Windows SmartScreen may say "Windows protected your PC" the first time, because the file is not code-signed. Click **More info**, then **Run anyway**.
+
+### 2. Run it once
+
+Double-click `PenButton.exe`. The settings window opens, and three small helper programs appear next to it, with a grey icon:
+
+| <img src="docs/icon.png" width="40"> | `PenButton.exe` | the settings window (the one you open) |
+|---|---|---|
+| <img src="docs/icon-gesture.png" width="40"> | `PenClick.exe` `PenDoubleClick.exe` `PenHold.exe` | what the pen button runs (no window) |
+
+### 3. Bind them to the pen
+
+Open the **Pen setup** page and click **Open pen settings** (or go to **Settings > Bluetooth & devices > Pen & Windows Ink > Pen shortcuts**). For each gesture choose **Open a program**, then pick:
+
+- **Single click** → `PenClick.exe`
+- **Double-click** → `PenDoubleClick.exe`
+- **Press and hold** → `PenHold.exe`
+
+![Pen setup page](docs/screens/en/5-pen-setup.png)
+
+You only do this once. From now on, change things in PenButton and click **Save**; the next press uses them.
+
+### 4. Choose what each gesture does
+
+On the **Actions** page, pick an action from the drop-down next to each gesture. To set a key, click the key box and press the key or combo on your keyboard. The right Alt key alone is recorded as "Right Alt".
+
+---
+
+## Using it
+
+### Actions
+
+| Action | What it does |
 |---|---|
-| Press keys | Any key or combo: `Enter`, `Ctrl+Enter`, `RAlt` (right Alt, handy for voice-typing apps), arrow keys, F-keys, ... |
-| Snip, then paste | 1st press copies a screenshot of the current window to the clipboard, 2nd press pastes it (Ctrl+V), 3rd press snips again, and so on |
+| Press keys | Sends the key or combo you recorded |
+| Snip, then paste | 1st press: screenshot of the current window to the clipboard. 2nd press: paste. Then it starts over |
 | Snip only / Paste | One of the two, every time |
-| Run a program | Starts any program or script |
-| Nothing | Turns a gesture off |
+| Run a program | Starts any program, script or shortcut |
+| Nothing | Turns the gesture off |
 
-After a screenshot or paste, a small label ("Captured" / "Pasted") shows next to the pen for under a second. It never takes focus.
+The default setup is: click = Right Alt, double-click = snip, then paste, hold = Enter.
 
-**Per-app rules.** Each gesture can do something else in a given program or window, for example:
+### Different actions in different apps
 
-- PowerPoint slide show: click = next slide, double-click = previous slide (set up by default)
-- Outlook: press and hold = `Ctrl+Enter` (send) instead of `Enter`
+On the **Per app** page, add a rule to change what the gestures do in one program or window. Rules are checked from top to bottom, and the first match wins. A gesture left on "Use default" keeps its normal action.
 
-![Settings window: per-app rules](docs/2-per-app-en.png)
+![Per-app rules](docs/screens/en/2-per-app.png)
 
-Rules match by program name (`OUTLOOK.EXE`), window class (`screenClass`) or text in the window title (`Gmail`). In the settings window you can pick the window from a list, or switch to it and let the tool read it after a 3-second countdown.
+When adding a rule you don't need to know the program's name: click **Pick an open window…**, or click **Read the active window in 3 s** and switch to the window (this is how you catch a running PowerPoint slide show).
 
-Default setup:
+![Editing a rule](docs/screens/en/6-edit-rule.png)
 
-| Gesture | Default action |
-|---|---|
-| Single click | `RAlt` (right Alt) |
-| Double-click | Snip, then paste |
-| Press and hold | `Enter` |
+Ideas:
 
-## Install
+- **PowerPoint slide show:** click = next slide, double-click = previous slide (included by default).
+- **Outlook:** hold = `Ctrl+Enter` to send the email.
+- **Chat apps:** hold = `Enter` to send; in apps where Enter makes a new line, use `Ctrl+Enter` or `Shift+Enter` instead.
+- **Browser web apps:** match by **Title contains**, for example `Gmail`.
 
-1. Download `PenButton.exe` from [Releases](../../releases) and put it in a folder that will stay put, e.g. `C:\Tools\PenButton`.
-2. Run `PenButton.exe`. It opens the settings window and creates three small button programs next to itself: `PenClick.exe`, `PenDoubleClick.exe` and `PenHold.exe`. They have a grey icon, so they are easy to tell apart from `PenButton.exe` in the file picker.
-3. Open **Settings > Bluetooth & devices > Pen & Windows Ink > Pen shortcuts** (the **Pen setup** page has a button for it). For each gesture choose **Open a program** and pick:
-   - Single click: `PenClick.exe`
-   - Double-click: `PenDoubleClick.exe`
-   - Press and hold: `PenHold.exe`
-4. Change what each gesture does in `PenButton.exe` and click **Save**. The next press uses the new settings. No re-binding.
+### Snip & label
 
-To update, replace `PenButton.exe` with the new one and run it once; it refreshes the three button programs. The bindings stay the same.
+Choose whether to capture the current window or the whole screen, play a sound, and after how long an unused screenshot should be replaced by a new one. You can also turn the small "Captured" / "Pasted" label off or change its text.
 
-`PenButton.exe` is not code-signed, so Windows SmartScreen may warn the first time. Choose "More info > Run anyway", or build it yourself with `build.bat` (no Visual Studio needed; it uses the C# compiler built into Windows).
+### Updates
 
-If PowerPoint or another app grabs the pen button itself, turn off **Allow apps to override the shortcut button behavior** on the same Pen shortcuts page.
+When the settings window opens, PenButton checks this page for a new version and downloads it in the background. A bar appears at the top; click **Restart to update**. Your settings and pen bindings stay as they are, and the three helper programs are refreshed automatically. You can turn this off, or check by hand, on the **Advanced** page.
 
-## Settings file
+![Update bar](docs/screens/en/8-update.png)
 
-`PenButton.exe` reads and writes `PenButton.ini` next to itself. You can also edit it in Notepad. It is created with these defaults on first run:
+### Language
 
-```ini
-[Settings]
-; wait before acting, so the pen-button event can finish (ms)
-PreDelayMs=100
-; how long keys are held down (ms)
-KeyHoldMs=40
-; window or screen
-SnipMode=window
-SnipSound=false
-; above 0: if the last screenshot is older than this (s), the next press snips again
-SnipResetSeconds=0
-Toast=true
-ToastMs=800
-; empty = follow the Windows language
-ToastSnipText=
-ToastPasteText=
-; true: write each press to PenButton.log
-Log=false
+Switch between 中文 and English at the bottom left of the window. The choice is saved, and the small labels next to the pen follow it.
 
-; PowerPoint slide show and Presenter View
-[class:screenClass|PodiumParent]
-Click=keys:Right
-DoubleClick=keys:Left
+---
 
-[Default]
-Click=keys:RAlt
-DoubleClick=snippaste
-Hold=keys:Enter
-```
+## Questions
 
-Comments go on their own lines: `;` starts a comment only at the beginning of a line.
+**Nothing happens when I press the pen button.**
+Check the bindings in Pen shortcuts (step 3). Windows also blocks simulated keys to programs running as administrator, so key actions do nothing there. To see what PenButton did, turn on **Log every press** on the Advanced page and open the log.
 
-Rules are checked top to bottom. The first section that matches the current window **and** sets that gesture wins; anything not set falls back to `[Default]`. Use `|` to list several names: `[app:OUTLOOK.EXE|olk.exe]`.
+**PowerPoint (or another app) does its own thing with the pen button.**
+Turn off **Allow apps to override the shortcut button behavior** on the Pen shortcuts page.
 
-Action syntax: `keys:<combo>`, `snippaste`, `snip`, `paste`, `run:<program> [args]`, `none`.
-Key names: `Ctrl Shift Alt Win RAlt RCtrl Enter Tab Esc Space Backspace Delete Insert Home End PageUp PageDown Left Right Up Down F1`..`F24` `A`..`Z` `0`..`9` `Apps PrintScreen CapsLock`.
+**Snip, then paste got out of step.**
+Snip and paste only remembers what it did last. If you pasted by hand, the next pen press still pastes once. Press again to start over, or set "Snip again after" on the Snip & label page.
 
-Not sure what a window is called? Turn on `Log=true`, press the pen button in that window, and read `PenButton.log`.
+**A Store app is not matched by its program name.**
+Store apps often run as `ApplicationFrameHost.exe`. Match them with **Title contains** instead.
 
-## How it works
+**Does it send anything over the internet?**
+Only the update check: when the settings window opens it asks GitHub for the latest release (`api.github.com`) and, if there is a newer one, downloads `PenButton.exe` from this repository. The pen-button programs never go online. Turn off **Update automatically** to stop it.
 
-- `PenClick.exe`, `PenDoubleClick.exe` and `PenHold.exe` are one small program (`src/GestureProgram.cs` with `Core.cs` and `PenButton.cs`, grey icon) that `PenButton.exe` carries as an embedded resource and writes out under the three names. It reads its own file name to know which gesture fired (Windows cannot pass arguments to pen-shortcut programs). `PenButton.exe` rewrites the three files whenever they differ from the embedded one, for example after an update.
-- Keys are sent with `keybd_event`, with the extended-key flag where needed (right Alt, arrows, ...).
-- Screenshots use the window's visible bounds (`DWMWA_EXTENDED_FRAME_BOUNDS`) with per-monitor DPI awareness, so they are sharp at 150 to 200% scaling. The image stays on the clipboard after the program exits.
-- The snip/paste step is remembered in `%LOCALAPPDATA%\PenButton\PenSnip.state`. Delete it to make the next press a screenshot.
-- Everything is built with the .NET Framework 4.x `csc.exe` that ships with Windows (C# 5; WinForms for the button actions, WPF for the settings window). No installer, no background process, no network access.
+**How do I uninstall it?**
+Set the three pen shortcuts back to their defaults and delete the folder. Everything PenButton writes is in that folder (its settings `PenButton.ini` and the optional log), apart from a tiny state file in `%LOCALAPPDATA%\PenButton`.
 
-## Known limits
+---
 
-- Windows blocks simulated keys to apps running as administrator (UIPI), so key actions do nothing there.
-- Snip/paste only knows what it did last. If you paste by hand with Ctrl+V after a snip, the next pen press still pastes once.
-- Screenshots capture what is visible on screen, including anything covering the window.
-- For Store (UWP) apps the program name is often `ApplicationFrameHost.exe`; match them by window title instead.
+## For developers
 
-## Build from source
+Everything is built with the C# compiler that ships with Windows (.NET Framework 4.x, C# 5). No Visual Studio, no NuGet.
 
 ```
+git clone https://github.com/liusong299/surface-pen-button
+cd surface-pen-button
 build.bat
 ```
 
-This builds the small button program first, then `PenButton.exe` with it embedded. Sources are in `src/`: `Program.cs` (entry point of PenButton.exe), `GestureProgram.cs` (entry point of the button program), `Core.cs` (ini model, rules, key names, Win32), `PenButton.cs` (the button actions), `PenButtonSettings.cs` and `SettingsWindow.xaml` (the settings window, WPF), `PenButton.ico` and `PenGesture.ico` (drawn by `tools/make_icon.py`). The XAML is embedded as a resource and loaded with `XamlReader`, so no XAML compiler or Visual Studio is needed. Keep to C# 5 syntax (no `$""`, no `?.`) so the built-in compiler can build it. `tests/CoreTests.cs` covers the ini parser and rule matching. CI builds on Windows, runs the tests, and renders every page of the settings window to PNG (`PenButton.exe --render <folder> --lang en|zh`) so layout changes can be reviewed without a screen.
+`build.bat` builds the small button program first, then `PenButton.exe` with it embedded.
+
+| File | What it is |
+|---|---|
+| `src/Program.cs` | Entry point of PenButton.exe |
+| `src/GestureProgram.cs` | Entry point of the button program (PenClick/PenDoubleClick/PenHold.exe) |
+| `src/Core.cs` | `PenButton.ini` model, rules, key names, Win32 calls; shared by both |
+| `src/PenButton.cs` | The actions: keys, snip/paste, the label next to the pen, log |
+| `src/PenButtonSettings.cs`, `src/SettingsWindow.xaml` | The settings window (WPF). The XAML is embedded and loaded with `XamlReader`, so no XAML compiler is needed. Text in `{{中文§English}}` is picked by the UI language |
+| `src/Updater.cs` | Update check, download, verification and swap |
+| `src/*.ico`, `tools/make_icon.py` | Icons and the script that draws them |
+| `tests/` | Tests for the ini parser, rule matching and the updater |
+
+How it works, briefly:
+
+- Windows cannot pass arguments to a pen-shortcut program, so the button program reads its own file name (`PenClick`, `PenDoubleClick`, `PenHold`) to know which gesture fired, runs the action and exits.
+- Keys are sent with `keybd_event`; screenshots use the window's visible bounds with per-monitor DPI awareness, so they are sharp at 150 to 200% scaling.
+- Updates: PenButton.exe reads the latest GitHub release, downloads `PenButton.exe` as `PenButton.exe.new`, checks its size, SHA-256 and version, renames itself to `.old` (Windows allows renaming a running exe), moves the new file into place and restarts.
+
+Workflow:
+
+- Work on the `dev` branch. Every push builds on Windows, runs the tests, renders every page of the settings window to PNG (see the `screenshots` artifact of the run, or `PenButton.exe --render <folder> --lang en|zh`), and tests the self-update against the real latest release.
+- To release, raise `AppInfo.Version` in `src/Core.cs` and merge into `main`. CI publishes a release with `PenButton.exe` when the version is new, and every installed copy offers the update.
+- Keep to C# 5 (no `$""`, no `?.`) so the built-in compiler can build it.
+
+Issues and pull requests are welcome.
 
 ## License
 
-MIT
+[MIT](LICENSE)

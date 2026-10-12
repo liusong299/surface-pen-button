@@ -30,14 +30,19 @@ jobs:
       - name: Render the settings window to PNG (also creates the button programs)
         shell: cmd
         run: |
-          start /wait "" PenButton.exe --render shots\zh --lang zh --dir "%CD%"
-          start /wait "" PenButton.exe --render shots\en --lang en --dir "%CD%"
+          rem Render from C:\Tools\PenButton so the screenshots show a realistic folder
+          mkdir C:\Tools\PenButton
+          copy PenButton.exe C:\Tools\PenButton\ >nul
+          set "APP=C:\Tools\PenButton"
+          start /wait "" %APP%\PenButton.exe --render "%CD%\shots\zh" --lang zh
+          start /wait "" %APP%\PenButton.exe --render "%CD%\shots\en" --lang en
           if exist shots\zh\error.txt (type shots\zh\error.txt & exit /b 1)
           if exist shots\en\error.txt (type shots\en\error.txt & exit /b 1)
-          for %%F in (PenClick.exe PenDoubleClick.exe PenHold.exe) do if not exist %%F (echo %%F was not created & exit /b 1)
-          fc /b PenClick.exe PenHold.exe >nul || (echo the button programs differ & exit /b 1)
-          fc /b PenButton.exe PenHold.exe >nul && (echo PenHold.exe should be the small program, not a copy of PenButton.exe & exit /b 1)
-          dir *.exe
+          for %%F in (PenClick.exe PenDoubleClick.exe PenHold.exe) do if not exist %APP%\%%F (echo %%F was not created & exit /b 1)
+          fc /b %APP%\PenClick.exe %APP%\PenHold.exe >nul || (echo the button programs differ & exit /b 1)
+          fc /b %APP%\PenButton.exe %APP%\PenHold.exe >nul && (echo PenHold.exe should be the small program & exit /b 1)
+          copy %APP%\PenClick.exe . >nul & copy %APP%\PenDoubleClick.exe . >nul & copy %APP%\PenHold.exe . >nul
+          dir %APP%
 
       - name: The button program runs a gesture and exits
         shell: pwsh
