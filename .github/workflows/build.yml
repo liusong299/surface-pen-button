@@ -63,6 +63,7 @@ jobs:
           "tag=$v" >> $env:GITHUB_OUTPUT
           "new=$new" >> $env:GITHUB_OUTPUT
           Write-Host "version $v, new release: $new"
+          exit 0
 
       - name: Release
         if: steps.ver.outputs.new == 'true'
