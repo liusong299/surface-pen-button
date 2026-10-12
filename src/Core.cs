@@ -324,7 +324,8 @@ class Config
         Rule show = new Rule();
         show.Kind = "class";
         show.Patterns = new string[] { "screenClass", "PodiumParent" };
-        show.Comment = "PowerPoint slide show and Presenter View: click = next slide, double-click = previous slide";
+        show.Comment = L.T("PowerPoint 放映和演示者视图：单击下一页，双击上一页",
+                           "PowerPoint slide show and Presenter View: click = next slide, double-click = previous slide");
         show.Values[Gestures.Click] = "keys:Right";
         show.Values[Gestures.DoubleClick] = "keys:Left";
         c.Rules.Add(show);

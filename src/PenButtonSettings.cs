@@ -177,7 +177,7 @@ static class Ui
     {
         if (g == Gestures.Click) return L.T("轻按一下顶部按钮", "Press the top button once");
         if (g == Gestures.DoubleClick) return L.T("快速按两下", "Press it twice quickly");
-        return L.T("按住约一秒", "Press and hold for about a second");
+        return L.T("按住约一秒", "Hold for about a second");
     }
 
     public static void NumbersOnly(TextBox t)
@@ -718,7 +718,10 @@ class SettingsUi
             txt.Margin = new Thickness(14, 0, 12, 0);
             txt.VerticalAlignment = VerticalAlignment.Center;
             txt.Children.Add(Ui.Text(Gestures.Label(g), "RowTitle"));
-            txt.Children.Add(Ui.Text(Ui.GestureHint(g), "RowDesc"));
+            TextBlock hint = Ui.Text(Ui.GestureHint(g), "RowDesc");
+            hint.TextWrapping = TextWrapping.NoWrap;
+            hint.TextTrimming = TextTrimming.CharacterEllipsis;
+            txt.Children.Add(hint);
             left.Children.Add(txt);
             dp.Children.Add(left);
             row.Child = dp;
@@ -1102,7 +1105,7 @@ class SettingsUi
             t.Margin = new Thickness(7, 0, 0, 0);
             t.VerticalAlignment = VerticalAlignment.Center;
             t.FontSize = 12.5;
-            t.Text = set ? ActionSpec.Parse(v).Describe() : L.T("默认", "Default");
+            t.Text = set ? ActionLabel(v) : L.T("默认", "Default");
             t.Foreground = set ? Ui.Text1 : Ui.Text3;
             cp.Children.Add(t);
             chip.Child = cp;
@@ -1113,6 +1116,16 @@ class SettingsUi
         dp.Children.Add(body);
         card.Child = dp;
         return card;
+    }
+
+    // Like ActionSpec.Describe, but keys shown the way the keycaps show them (arrows, "Right Alt").
+    static string ActionLabel(string v)
+    {
+        ActionSpec a = ActionSpec.Parse(v);
+        if (a.Type != ActionSpec.Keys) return a.Describe();
+        List<string> parts = new List<string>();
+        foreach (string p in a.Arg.Split('+')) parts.Add(Ui.KeyLabel(p.Trim()));
+        return L.T("按键 ", "Keys ") + string.Join(" + ", parts.ToArray());
     }
 
     void MoveRule(int i, int delta)

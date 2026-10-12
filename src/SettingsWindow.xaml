@@ -673,18 +673,20 @@
           <ScrollViewer x:Name="Page4" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Visibility="Collapsed">
             <StackPanel Margin="36,18,36,28">
               <Border Style="{StaticResource Section}" Padding="20,18">
-                <StackPanel x:Name="Steps"/>
+                <StackPanel>
+                  <StackPanel x:Name="Steps"/>
+                  <Button x:Name="OpenPen" Style="{StaticResource Primary}" HorizontalAlignment="Left" Margin="36,16,0,0">
+                    <StackPanel Orientation="Horizontal">
+                      <TextBlock Text="&#xE8A7;" FontFamily="{StaticResource Icons}" FontSize="12" VerticalAlignment="Center" Margin="0,1,8,0"/>
+                      <TextBlock Text="{{打开笔设置§Open pen settings}}"/>
+                    </StackPanel>
+                  </Button>
+                </StackPanel>
               </Border>
               <TextBlock Style="{StaticResource H2}" Text="{{要选择的程序§Programs to pick}}"/>
               <Border Style="{StaticResource Section}">
                 <StackPanel x:Name="ExeRows"/>
               </Border>
-              <Button x:Name="OpenPen" Style="{StaticResource Primary}" HorizontalAlignment="Left" Margin="0,18,0,0">
-                <StackPanel Orientation="Horizontal">
-                  <TextBlock Text="&#xE8A7;" FontFamily="{StaticResource Icons}" FontSize="12" VerticalAlignment="Center" Margin="0,1,8,0"/>
-                  <TextBlock Text="{{打开笔设置§Open pen settings}}"/>
-                </StackPanel>
-              </Button>
             </StackPanel>
           </ScrollViewer>
         </Grid>
@@ -704,11 +706,12 @@
 
     <!-- Rule editor (overlay) -->
     <Grid x:Name="EditorOverlay" Grid.ColumnSpan="2" Background="#4D0F0F14" Visibility="Collapsed">
-      <Border Width="600" VerticalAlignment="Center" HorizontalAlignment="Center" Background="White" CornerRadius="16" Padding="28,24">
+      <Border Width="600" Margin="0,20" VerticalAlignment="Center" HorizontalAlignment="Center" Background="White" CornerRadius="16" Padding="4,4">
         <Border.Effect>
           <DropShadowEffect BlurRadius="40" ShadowDepth="8" Direction="270" Opacity="0.22"/>
         </Border.Effect>
-        <StackPanel>
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="24,20,24,20">
           <TextBlock x:Name="EditorTitle" FontSize="18" FontWeight="SemiBold"/>
           <TextBlock Style="{StaticResource RowDesc}" Margin="0,4,0,18"
                      Text="{{在匹配的程序或窗口里，用下面的动作代替默认动作§In matching programs or windows, these actions replace the defaults}}"/>
@@ -743,6 +746,7 @@
             <Button x:Name="EditorOk" Style="{StaticResource Primary}" MinWidth="88" Content="{{确定§OK}}"/>
           </StackPanel>
         </StackPanel>
+        </ScrollViewer>
       </Border>
     </Grid>
 
