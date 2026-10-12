@@ -29,12 +29,13 @@ REM 2. PenButton.exe: settings window + the program above as a resource.
 "%CSC%" /nologo /target:winexe /optimize+ /codepage:65001 ^
   /r:System.Windows.Forms.dll /r:System.Drawing.dll ^
   /lib:"%FW%WPF" /r:PresentationFramework.dll /r:PresentationCore.dll /r:WindowsBase.dll /r:System.Xaml.dll ^
+  /r:System.Web.Extensions.dll ^
   /win32icon:src\PenButton.ico ^
   /resource:src\SettingsWindow.xaml,SettingsWindow.xaml ^
   /resource:src\PenButton.ico,PenButton.ico ^
   /resource:obj\PenGesture.exe,PenGesture.exe ^
   /out:PenButton.exe ^
-  src\Program.cs src\Core.cs src\PenButton.cs src\PenButtonSettings.cs
+  src\Program.cs src\Core.cs src\PenButton.cs src\PenButtonSettings.cs src\Updater.cs
 if errorlevel 1 goto fail
 
 rmdir /s /q obj

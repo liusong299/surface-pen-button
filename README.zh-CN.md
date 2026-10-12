@@ -1,101 +1,165 @@
-<img src="docs/icon.png" width="96" align="right" alt="PenButton 图标">
+<img src="docs/icon.png" width="88" align="right" alt="PenButton 图标">
 
-# PenButton 中文说明
+# PenButton
 
-给 Surface 笔顶部按钮加上更实用的功能。只有一个 `PenButton.exe`，不依赖任何第三方软件，用 Windows 自带的 C# 编译器 `csc.exe` 编译。
+**让 Surface 笔顶部的按钮做你真正想要的事。**
 
-Windows 的“笔快捷方式”只能给单击、双击、长按各绑定一个程序。PenButton 就是这个程序：每种按法做什么，在设置界面（或 `.ini` 文件）里改，还可以按当前所在的程序做不同的事。
+[English](README.md) · [下载 PenButton.exe](https://github.com/liusong299/surface-pen-button/releases/latest/download/PenButton.exe) · [所有版本](https://github.com/liusong299/surface-pen-button/releases)
 
-[English](README.md)
+![PenButton 设置界面](docs/screens/zh/1-actions.png)
 
-![设置界面：按钮动作](docs/1-actions-zh.png)
+Windows 允许笔按钮的三种按法（单击、双击、长按）各打开一个程序。PenButton 就是这个程序：每种按法做什么，在一个简单的界面里选就行，还能在不同的软件里做不同的事。
 
-## 能做什么
+- **按任意键或组合键**：右 Alt 唤起语音输入（Typeless 等），Enter 发消息，Ctrl+Enter 发邮件，方向键、F 键都可以。
+- **截图/粘贴交替**：第一次按，把当前窗口截图到剪贴板；第二次按，直接粘贴。笔尖旁边会闪一下“已截图”或“已粘贴”。
+- **按程序设置**：比如 PowerPoint 放映时，单击下一页、双击上一页（默认已经设好）。
+- **只有一个小文件，不用安装**：不需要管理员权限，不常驻后台，会从这个页面自动更新。
+- **中文和英文界面**，在窗口左下角随时切换。
+
+为 Windows 11 和带快捷按钮（顶部按钮）的笔设计，例如 Surface Pen、Surface Slim Pen。Windows 10 应该也能用，但还没测试过。
+
+---
+
+## 快速上手（两分钟）
+
+### 1. 下载
+
+下载 **[PenButton.exe](https://github.com/liusong299/surface-pen-button/releases/latest/download/PenButton.exe)**，放到一个以后不会再移动的文件夹里，例如 `C:\Tools\PenButton`。
+
+> 第一次运行时，Windows 可能提示“Windows 已保护你的电脑”，因为这个文件没有数字签名。点 **更多信息**，再点 **仍要运行** 即可。
+
+### 2. 运行一次
+
+双击 `PenButton.exe`。设置界面会打开，同时在旁边生成三个灰色图标的小程序：
+
+| <img src="docs/icon.png" width="40"> | `PenButton.exe` | 设置界面（你平时打开的就是它） |
+|---|---|---|
+| <img src="docs/icon-gesture.png" width="40"> | `PenClick.exe` `PenDoubleClick.exe` `PenHold.exe` | 按笔时运行的程序（没有界面） |
+
+### 3. 绑定到笔
+
+打开 **绑定到笔** 页，点 **打开笔设置**（也可以自己打开 **设置 > 蓝牙和其他设备 > 笔和 Windows Ink > 笔快捷方式**）。三种按法分别选 **打开程序**，再选：
+
+- **单击** → `PenClick.exe`
+- **双击** → `PenDoubleClick.exe`
+- **长按** → `PenHold.exe`
+
+![绑定到笔](docs/screens/zh/5-pen-setup.png)
+
+这一步只需要做一次。以后在 PenButton 里改设置、点 **保存**，下次按笔就生效。
+
+### 4. 选择每种按法的动作
+
+在 **按钮动作** 页，从每种按法右边的下拉框里选动作。设置按键时，点一下按键框，再在键盘上按想要的键或组合键。只按右边的 Alt 会记成“右 Alt”。
+
+---
+
+## 使用说明
+
+### 可以选的动作
 
 | 动作 | 效果 |
 |---|---|
-| 按键 | 任意键或组合键：`Enter`、`Ctrl+Enter`、`RAlt`（右 Alt，可唤起 Typeless 等语音输入）、方向键、F 键等 |
-| 截图/粘贴交替 | 第一次把当前窗口截图到剪贴板，第二次粘贴（Ctrl+V），第三次又截图，依此类推 |
+| 按键 | 发送你录下的键或组合键 |
+| 截图/粘贴交替 | 第一次：把当前窗口截图到剪贴板；第二次：粘贴；然后重新开始 |
 | 只截图 / 粘贴 | 每次都只做其中一件 |
-| 运行程序 | 启动任意程序或脚本 |
+| 运行程序 | 启动任意程序、脚本或快捷方式 |
 | 无动作 | 关掉这个按法 |
 
-截图或粘贴后，笔尖旁边会出现一个小提示（“已截图”绿点，“已粘贴”蓝点），不到一秒就消失，不会抢走输入焦点。
+默认设置是：单击 = 右 Alt，双击 = 截图/粘贴交替，长按 = Enter。
 
-**按程序设置**：每种按法在某个程序或窗口里可以换成别的动作，例如：
+### 在不同软件里用不同的动作
 
-- PowerPoint 放映时：单击下一页，双击上一页（默认已经设好）
-- Outlook 里：长按发 `Ctrl+Enter`（发送邮件），而不是普通回车
+在 **按程序设置** 页添加规则，可以改变某个程序或窗口里各按法的动作。规则从上往下查找，先匹配到的优先；设成“沿用默认”的按法保持原来的动作。
 
-可以按程序名（`OUTLOOK.EXE`）、窗口类名（`screenClass`）或窗口标题里的文字（`Gmail`）来匹配。设置界面里可以从打开的窗口列表中直接选，也可以点“3 秒后读取当前窗口”，然后切到目标窗口让它自己读取。
+![按程序设置](docs/screens/zh/2-per-app.png)
 
-默认设置：
+添加规则时不需要知道程序叫什么：点 **从打开的窗口中选…**，或者点 **3 秒后读取当前窗口** 再切到那个窗口（正在放映的 PowerPoint 就用这个办法）。
 
-| 按法 | 默认动作 |
-|---|---|
-| 单击 | `RAlt`（右 Alt） |
-| 双击 | 截图/粘贴交替 |
-| 长按 | `Enter` |
+![编辑规则](docs/screens/zh/6-edit-rule.png)
 
-![设置界面：按程序设置](docs/2-per-app-zh.png)
+几个常用的例子：
 
-## 安装
+- **PowerPoint 放映**：单击下一页，双击上一页（默认已经有这条规则）。
+- **Outlook**：长按 = `Ctrl+Enter`，直接发送邮件。
+- **聊天软件**：长按 = `Enter` 发送；如果某个软件里 Enter 是换行，就改成 `Ctrl+Enter` 或 `Shift+Enter`。
+- **网页里的应用**：用 **窗口标题包含** 来匹配，例如 `Gmail`。
 
-1. 从 Releases 下载 `PenButton.exe`，放进一个不会再移动的文件夹，例如 `C:\Tools\PenButton`。
-2. 运行 `PenButton.exe`。它会打开设置界面，并在旁边自动生成三个按钮程序：`PenClick.exe`、`PenDoubleClick.exe`、`PenHold.exe`。这三个是灰色图标，选程序时很容易和 `PenButton.exe` 分开。
-3. 打开 设置 > 蓝牙和其他设备 > 笔和 Windows Ink > 笔快捷方式（设置界面的“绑定到笔”页有按钮可以直接打开），三种按法分别选“打开程序”，再选：
-   - 单击：`PenClick.exe`
-   - 双击：`PenDoubleClick.exe`
-   - 长按：`PenHold.exe`
-4. 以后在 `PenButton.exe` 里改动作，点“保存”，下次按笔就生效，不用重新绑定。
+### 截图与提示
 
-更新版本时，用新的 `PenButton.exe` 替换旧的，再运行一次，它会自动更新三个按钮程序，绑定不用动。
+可以选截当前窗口还是整个屏幕、要不要提示音、截图后多久没粘贴就重新截图。笔尖旁边的“已截图”“已粘贴”小提示也可以关掉或改文字。
 
-`PenButton.exe` 没有数字签名，第一次运行时 Windows SmartScreen 可能会提示，选“更多信息 > 仍要运行”即可。也可以自己用 `build.bat` 编译。
+### 自动更新
 
-如果 PowerPoint 等程序自己接管了笔按钮，在同一页里关掉“允许应用替代快捷方式按钮行为”。
+打开设置界面时，PenButton 会到这个页面查看有没有新版本，有的话在后台下载好。窗口顶部会出现一条提示，点 **重启并更新** 就行。你的设置和笔的绑定都不变，三个按钮程序也会自动更新。想关掉自动更新或手动检查，在 **高级** 页。
 
-## 设置界面
+![更新提示](docs/screens/zh/8-update.png)
 
-| 页面 | 内容 |
-|---|---|
-| 按钮动作 | 单击、双击、长按的默认动作。设置按键时，点一下按键框，再在键盘上按想要的键或组合键，按键会以键帽的样子显示 |
-| 按程序设置 | 按程序或窗口另设规则，可添加、编辑、删除、调整顺序（从上往下，先匹配到的优先）。添加时可以从打开的窗口里直接选 |
-| 截图与提示 | 截当前窗口还是整个屏幕、提示音、多久没粘贴就重新截图、小提示的开关和文字 |
-| 高级 | 动作前等待、按键按住时长、日志、用记事本打开 ini、恢复默认 |
-| 绑定到笔 | 三个 exe 的完整路径（可一键复制）和“打开笔设置”按钮 |
+### 界面语言
 
-## 文件说明
+在窗口左下角切换“中文 / English”。选择会被记住，笔尖旁边的小提示也会跟着换语言。
+
+---
+
+## 常见问题
+
+**按笔没有反应。**
+先检查第 3 步的绑定。另外，以管理员身份运行的程序会拦截模拟按键，按键类动作在这类窗口里无效。想知道 PenButton 做了什么，可以在 **高级** 页打开“记录日志”，按一下笔再打开日志看。
+
+**PowerPoint 等程序自己接管了笔按钮。**
+在笔快捷方式那一页，关掉 **允许应用替代快捷方式按钮行为**。
+
+**截图/粘贴的顺序乱了。**
+它只记得自己上一次做了什么。截图后如果自己用键盘粘贴过，下一次按笔仍然会粘贴一次。再按一次就会重新开始；也可以在“截图与提示”页设置“过期重新截图”。
+
+**应用商店里的程序按程序名匹配不到。**
+这类程序的程序名经常是 `ApplicationFrameHost.exe`，改用 **窗口标题包含** 来匹配。
+
+**它会上网吗？**
+只有检查更新会：打开设置界面时，它向 GitHub（`api.github.com`）查询最新版本，有新版本时从这个仓库下载 `PenButton.exe`。按笔时运行的三个小程序从不联网。不想要的话，关掉 **自动更新** 即可。
+
+**怎么卸载？**
+把三种按法的笔快捷方式改回默认，再删掉整个文件夹。PenButton 写的文件都在这个文件夹里（设置文件 `PenButton.ini` 和可选的日志），另外只有 `%LOCALAPPDATA%\PenButton` 里一个很小的状态文件。
+
+---
+
+## 开发
+
+全部用 Windows 自带的 C# 编译器（.NET Framework 4.x，C# 5）编译，不需要 Visual Studio，也不用 NuGet。
+
+```
+git clone https://github.com/liusong299/surface-pen-button
+cd surface-pen-button
+build.bat
+```
+
+`build.bat` 先编译按钮小程序，再把它嵌进去编译出 `PenButton.exe`。
 
 | 文件 | 作用 |
 |---|---|
-| `src/Program.cs` | `PenButton.exe` 的入口：打开设置界面，释放三个按钮程序 |
-| `src/GestureProgram.cs` | 三个按钮程序的入口：按自己的文件名执行对应按法的动作，没有界面 |
-| `src/Core.cs` | 公共部分：ini 的读写、匹配规则、按键名称、取前台窗口信息、Win32 调用 |
-| `src/PenButton.cs` | 按笔时执行的动作：发按键、截图/粘贴、小提示、日志 |
-| `src/PenButtonSettings.cs`、`src/SettingsWindow.xaml` | 设置界面（WPF）。界面布局和样式写在 XAML 里，编译时嵌进 exe，运行时读取，所以不需要 Visual Studio |
-| `src/PenButton.ico`、`src/PenGesture.ico`、`tools/make_icon.py` | 主程序图标、按钮程序的灰色图标，以及画图标的脚本 |
-| `build.bat` | 先编译按钮程序，再把它嵌进去编译出 `PenButton.exe` |
-| `PenButton.ini` | 设置文件。第一次按笔或第一次在设置界面保存时自动生成 |
-| `tests/CoreTests.cs` | ini 解析和规则匹配的测试 |
+| `src/Program.cs` | PenButton.exe 的入口 |
+| `src/GestureProgram.cs` | 按钮小程序（PenClick/PenDoubleClick/PenHold.exe）的入口 |
+| `src/Core.cs` | `PenButton.ini` 的读写、匹配规则、按键名称、Win32 调用，两个程序共用 |
+| `src/PenButton.cs` | 各个动作：发按键、截图/粘贴、笔尖旁的小提示、日志 |
+| `src/PenButtonSettings.cs`、`src/SettingsWindow.xaml` | 设置界面（WPF）。XAML 编译时嵌进 exe，运行时用 `XamlReader` 读取，所以不需要 XAML 编译器。写成 `{{中文§English}}` 的文字按界面语言二选一 |
+| `src/Updater.cs` | 检查更新、下载、校验、替换 |
+| `src/*.ico`、`tools/make_icon.py` | 图标和画图标的脚本 |
+| `tests/` | ini 解析、规则匹配和更新功能的测试 |
 
-- 三个按钮程序其实是同一个小程序（`src/GestureProgram.cs` 加上 `Core.cs`、`PenButton.cs`，灰色图标），它嵌在 `PenButton.exe` 里面，由 `PenButton.exe` 释放成三个名字。它靠自己的文件名分辨是哪种按法（Windows 的笔快捷方式不能给程序传参数）。磁盘上的三个文件和嵌在里面的不一样时（例如更新之后），`PenButton.exe` 会自动重新写一遍。
-- 截图/粘贴的状态记在 `%LOCALAPPDATA%\PenButton\PenSnip.state`。顺序乱了就删掉它，下一次就会截图。在 Win+R 里输入 `%LOCALAPPDATA%\PenButton` 可以打开这个文件夹。
-- 不知道某个窗口叫什么：在“高级”里打开日志，在那个窗口里按一下笔，再打开日志看程序名、类名和标题。
+工作原理简述：
 
-## 修改代码时的约定
+- Windows 的笔快捷方式不能给程序传参数，所以按钮小程序靠自己的文件名（`PenClick`、`PenDoubleClick`、`PenHold`）判断是哪种按法，执行完动作就退出。
+- 按键用 `keybd_event` 发送；截图按窗口的可见边界截取，并开启了按显示器的 DPI 感知，在 150% 到 200% 缩放下也清晰。
+- 更新：PenButton.exe 读取 GitHub 上最新的版本，把 `PenButton.exe` 下载成 `PenButton.exe.new`，校验大小、SHA-256 和版本号，然后把自己改名成 `.old`（Windows 允许给正在运行的 exe 改名），把新文件放到原位，再重新启动。
 
-1. 改完代码后双击 `build.bat` 重新编译，再运行一次 `PenButton.exe` 更新三个按钮程序。名字和路径不变，笔快捷方式不用重新绑定。
-2. 所有程序都编译为 `winexe`。编成控制台程序的话，运行时会弹出黑框并抢走焦点，按键就发不到原来的窗口了。
-3. 只用 .NET Framework 4.x 和 C# 5 的语法（系统自带的 `csc.exe` 版本较老）：不要用 `$"..."`、`?.` 等新语法，也不要引入 NuGet 包。
-4. 动作前的短暂等待（默认 100 ms）是为了让笔按钮事件先结束，不要去掉。
-5. 改界面后，GitHub 上的自动构建会把每一页渲染成图片（Actions 里的 screenshots），不用开机器就能检查排版。也可以自己运行 `PenButton.exe --render 文件夹 --lang zh`。
-6. 新的设置项加在 `Core.cs` 的 `KnownSettings` 里，并在设置界面加上对应控件；新的动作类型加在 `ActionSpec` 里，并在 `PenButton.cs` 的 `Actions.Run` 里实现。
+开发流程：
 
-## 已知限制
+- 在 `dev` 分支上开发。每次推送，GitHub 都会在 Windows 上编译、跑测试、把设置界面的每一页渲染成图片（在运行记录的 `screenshots` 里，也可以自己运行 `PenButton.exe --render 文件夹 --lang zh`），并用真实的最新版本测试一遍自动更新。
+- 发布新版本时，把 `src/Core.cs` 里的 `AppInfo.Version` 改大，合并到 `main`。版本号是新的，CI 就会自动发布并附上 `PenButton.exe`，已经安装的 PenButton 会提示更新。
+- 只用 C# 5 的语法（不要用 `$""`、`?.`），这样系统自带的编译器才能编译。
 
-- 当前窗口是以管理员身份运行的程序时，Windows 会拦截模拟按键（UIPI 安全机制），按键类动作在这类窗口里无效。
-- 截图/粘贴只记得自己上一次做了什么。截图后如果自己用键盘 Ctrl+V 粘贴过，下一次按笔仍然会粘贴一次。
-- 截图截的是屏幕上看得到的像素，挡在窗口上面的东西也会截进去。
-- 应用商店（UWP）程序的程序名经常是 `ApplicationFrameHost.exe`，这类程序建议用窗口标题来匹配。
-- 在 Office 等程序里单独按 Alt 有时会显示功能区快捷键提示，通常会被输入法先拦截，不影响语音输入。
+欢迎提 Issue 和 Pull Request。
+
+## 许可证
+
+[MIT](LICENSE)

@@ -31,6 +31,7 @@ static class PenButton
 
         string exeDir = AppDomain.CurrentDomain.BaseDirectory;
         Config cfg = Config.Load(Path.Combine(exeDir, AppInfo.IniName), true);
+        L.Apply(cfg.GetString("Language", "auto"));
         Log log = new Log(cfg.GetBool("Log", false), exeDir);
         foreach (string w in cfg.Warnings) log.Write("ini: " + w);
 
