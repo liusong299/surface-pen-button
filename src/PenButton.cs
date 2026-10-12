@@ -88,6 +88,7 @@ static class Actions
         }
         if (a.Type == ActionSpec.SnipPaste) { SnipPaste(cfg, fg, holdMs); return; }
         if (a.Type == ActionSpec.Run) { Launch(a.Arg); return; }
+        if (a.Type == ActionSpec.Laser) { Laser.Toggle(cfg); return; }
         log.Write("Unknown action '" + a.Arg + "'.");
     }
 
@@ -108,7 +109,7 @@ static class Actions
         }
     }
 
-    static void ShowToast(Config cfg, bool snip)
+    public static void ShowToast(Config cfg, bool snip)
     {
         if (!cfg.GetBool("Toast", true)) return;
         string text = snip
@@ -383,6 +384,205 @@ class Toast : Form
     protected override void Dispose(bool disposing)
     {
         if (disposing) { timer.Dispose(); font.Dispose(); }
+        base.Dispose(disposing);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Laser pointer: a glowing dot that follows the pen (or mouse) while it hovers.
+// The first press starts it; the next press (any instance of PenButton running
+// "laser") stops it. It never takes focus and lets every click through, and it
+// shows up when you share your whole screen in Teams or Zoom.
+// ---------------------------------------------------------------------------
+
+class Laser : Form
+{
+    const string MutexName = "Local\\PenButton.Laser";
+    const string StopEventName = "Local\\PenButton.Laser.Stop";
+
+    readonly Color color;
+    readonly int baseSize;
+    readonly int hideMs;
+    readonly long autoOffMs;
+    readonly System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer();
+    readonly Stopwatch clock = Stopwatch.StartNew();
+    readonly EventWaitHandle stopEvent;
+
+    Bitmap dot;
+    float dotDpi;
+    Point last = new Point(int.MinValue, int.MinValue);
+    long lastMove;
+    double alpha;   // 0..1, target opacity right now
+    Point shownAt = new Point(int.MinValue, int.MinValue);
+    double shownAlpha = -1;
+
+    public static void Toggle(Config cfg)
+    {
+        bool created;
+        using (Mutex m = new Mutex(true, MutexName, out created))
+        {
+            if (!created)
+            {
+                // Already on: tell it to stop.
+                try
+                {
+                    using (EventWaitHandle e = EventWaitHandle.OpenExisting(StopEventName)) e.Set();
+                }
+                catch (Exception) { }
+                return;
+            }
+            using (EventWaitHandle stop = new EventWaitHandle(false, EventResetMode.AutoReset, StopEventName))
+            using (Laser f = new Laser(cfg, stop))
+            {
+                Application.Run(f);
+            }
+            m.ReleaseMutex();
+        }
+    }
+
+    Laser(Config cfg, EventWaitHandle stop)
+    {
+        stopEvent = stop;
+        color = ParseColor(cfg.GetString("LaserColor", "#FF3B30"), Color.FromArgb(255, 59, 48));
+        baseSize = Math.Max(6, Math.Min(120, cfg.GetInt("LaserSize", 22)));
+        hideMs = Math.Max(0, cfg.GetInt("LaserHideMs", 2500));
+        autoOffMs = Math.Max(0, cfg.GetInt("LaserAutoOffMinutes", 10)) * 60000L;
+
+        FormBorderStyle = FormBorderStyle.None;
+        ShowInTaskbar = false;
+        StartPosition = FormStartPosition.Manual;
+        AutoScaleMode = AutoScaleMode.None;
+        Location = new Point(-32000, -32000);
+        Size = new Size(1, 1);
+
+        timer.Interval = 10;
+        timer.Tick += OnTick;
+
+        Thread waiter = new Thread(delegate ()
+        {
+            try { stopEvent.WaitOne(); } catch (Exception) { return; }
+            try { BeginInvoke(new MethodInvoker(Close)); } catch (Exception) { }
+        });
+        waiter.IsBackground = true;
+        waiter.Start();
+    }
+
+    static Color ParseColor(string s, Color def)
+    {
+        try
+        {
+            s = (s ?? "").Trim().TrimStart('#');
+            if (s.Length != 6) return def;
+            int v = int.Parse(s, System.Globalization.NumberStyles.HexNumber);
+            return Color.FromArgb((v >> 16) & 255, (v >> 8) & 255, v & 255);
+        }
+        catch (Exception) { return def; }
+    }
+
+    protected override bool ShowWithoutActivation { get { return true; } }
+
+    protected override CreateParams CreateParams
+    {
+        get
+        {
+            CreateParams cp = base.CreateParams;
+            cp.ExStyle |= Native.WS_EX_LAYERED | Native.WS_EX_TOPMOST | Native.WS_EX_TOOLWINDOW |
+                          Native.WS_EX_NOACTIVATE | Native.WS_EX_TRANSPARENT;
+            return cp;
+        }
+    }
+
+    protected override void OnShown(EventArgs e)
+    {
+        base.OnShown(e);
+        lastMove = clock.ElapsedMilliseconds;
+        timer.Start();
+    }
+
+    void OnTick(object sender, EventArgs e)
+    {
+        long now = clock.ElapsedMilliseconds;
+        Point p = Cursor.Position;
+        if (p != last) { last = p; lastMove = now; }
+        long idle = now - lastMove;
+
+        if (autoOffMs > 0 && idle > autoOffMs) { Close(); return; }
+
+        // Visible while moving; fade out after hideMs without movement, fade back in on movement.
+        double target = (hideMs > 0 && idle > hideMs) ? 0.0 : 1.0;
+        double step = target > alpha ? 0.25 : 0.06;
+        alpha = target > alpha ? Math.Min(target, alpha + step) : Math.Max(target, alpha - step);
+
+        float dpi = Native.DpiAt(p);
+        bool rebuilt = false;
+        if (dot == null || dpi != dotDpi) { BuildDot(dpi); rebuilt = true; }
+        if (rebuilt || p != shownAt || alpha != shownAlpha)   // nothing changed: skip the redraw
+        {
+            Present(p);
+            shownAt = p;
+            shownAlpha = alpha;
+        }
+    }
+
+    // A soft glow, a solid core and a bright centre, drawn once per DPI.
+    void BuildDot(float dpi)
+    {
+        if (dot != null) dot.Dispose();
+        dotDpi = dpi;
+        int core = Math.Max(4, (int)Math.Round(baseSize * dpi / 96f));
+        int size = core * 3;
+        dot = new Bitmap(size, size, PixelFormat.Format32bppArgb);
+        using (Graphics g = Graphics.FromImage(dot))
+        {
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.Clear(Color.Transparent);
+            using (GraphicsPath path = new GraphicsPath())
+            {
+                path.AddEllipse(0, 0, size, size);
+                using (PathGradientBrush glow = new PathGradientBrush(path))
+                {
+                    glow.CenterColor = Color.FromArgb(150, color);
+                    glow.SurroundColors = new Color[] { Color.FromArgb(0, color) };
+                    g.FillEllipse(glow, 0, 0, size, size);
+                }
+            }
+            float c0 = (size - core) / 2f;
+            using (SolidBrush b = new SolidBrush(color)) g.FillEllipse(b, c0, c0, core, core);
+            float hi = core * 0.45f, h0 = (size - hi) / 2f;
+            Color light = Color.FromArgb(255, (255 + color.R * 2) / 3, (255 + color.G) / 2, (255 + color.B) / 2);
+            using (SolidBrush b = new SolidBrush(light)) g.FillEllipse(b, h0, h0, hi, hi);
+        }
+    }
+
+    void Present(Point p)
+    {
+        IntPtr screen = Native.GetDC(IntPtr.Zero);
+        IntPtr mem = Native.CreateCompatibleDC(screen);
+        IntPtr hbmp = dot.GetHbitmap(Color.FromArgb(0));
+        IntPtr old = Native.SelectObject(mem, hbmp);
+        try
+        {
+            Native.POINT dst = new Native.POINT(p.X - dot.Width / 2, p.Y - dot.Height / 2);
+            Native.SIZE sz = new Native.SIZE(dot.Width, dot.Height);
+            Native.POINT src = new Native.POINT(0, 0);
+            Native.BLENDFUNCTION bf = new Native.BLENDFUNCTION();
+            bf.BlendOp = Native.AC_SRC_OVER;
+            bf.SourceConstantAlpha = (byte)Math.Round(alpha * 255);
+            bf.AlphaFormat = Native.AC_SRC_ALPHA;
+            Native.UpdateLayeredWindow(Handle, screen, ref dst, ref sz, mem, ref src, 0, ref bf, Native.ULW_ALPHA);
+        }
+        finally
+        {
+            Native.SelectObject(mem, old);
+            Native.DeleteObject(hbmp);
+            Native.DeleteDC(mem);
+            Native.ReleaseDC(IntPtr.Zero, screen);
+        }
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing) { timer.Dispose(); if (dot != null) dot.Dispose(); }
         base.Dispose(disposing);
     }
 }

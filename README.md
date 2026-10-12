@@ -13,6 +13,7 @@ Windows lets each of the three pen-button gestures (single click, double-click, 
 | Press keys | Any key or combo: `Enter`, `Ctrl+Enter`, `RAlt` (right Alt, handy for voice-typing apps), arrow keys, F-keys, ... |
 | Snip, then paste | 1st press copies a screenshot of the current window to the clipboard, 2nd press pastes it (Ctrl+V), 3rd press snips again, and so on |
 | Snip only / Paste | One of the two, every time |
+| Laser pointer | Press once and a glowing dot follows the pen tip while it hovers over the screen; press again to turn it off |
 | Run a program | Starts any program or script |
 | Nothing | Turns a gesture off |
 
@@ -20,7 +21,7 @@ After a screenshot or paste, a small label ("Captured" / "Pasted") shows next to
 
 **Per-app rules.** Each gesture can do something else in a given program or window, for example:
 
-- PowerPoint slide show: click = next slide, double-click = previous slide (set up by default)
+- PowerPoint slide show: click = next slide, double-click = previous slide, press and hold = laser pointer (set up by default)
 - Outlook: press and hold = `Ctrl+Enter` (send) instead of `Enter`
 
 Rules match by program name (`OUTLOOK.EXE`), window class (`screenClass`) or text in the window title (`Gmail`). In the settings window you can pick the window from a list, or switch to it and let the tool read it after a 3-second countdown.
@@ -66,6 +67,13 @@ ToastMs=800
 ; empty = follow the Windows language
 ToastSnipText=
 ToastPasteText=
+LaserColor=#FF3B30
+; pixels at 100% scaling
+LaserSize=22
+; fade the dot out after this long without movement (ms), 0 = never
+LaserHideMs=2500
+; turn the laser off after this many idle minutes, 0 = never
+LaserAutoOffMinutes=10
 ; true: write each press to PenButton.log
 Log=false
 
@@ -73,6 +81,7 @@ Log=false
 [class:screenClass|PodiumParent]
 Click=keys:Right
 DoubleClick=keys:Left
+Hold=laser
 
 [Default]
 Click=keys:RAlt
@@ -84,7 +93,7 @@ Comments go on their own lines: `;` starts a comment only at the beginning of a 
 
 Rules are checked top to bottom. The first section that matches the current window **and** sets that gesture wins; anything not set falls back to `[Default]`. Use `|` to list several names: `[app:OUTLOOK.EXE|olk.exe]`.
 
-Action syntax: `keys:<combo>`, `snippaste`, `snip`, `paste`, `run:<program> [args]`, `none`.
+Action syntax: `keys:<combo>`, `snippaste`, `snip`, `paste`, `laser`, `run:<program> [args]`, `none`.
 Key names: `Ctrl Shift Alt Win RAlt RCtrl Enter Tab Esc Space Backspace Delete Insert Home End PageUp PageDown Left Right Up Down F1`..`F24` `A`..`Z` `0`..`9` `Apps PrintScreen CapsLock`.
 
 Not sure what a window is called? Turn on `Log=true`, press the pen button in that window, and read `PenButton.log`.
@@ -94,6 +103,7 @@ Not sure what a window is called? Turn on `Log=true`, press the pen button in th
 - `PenClick.exe`, `PenDoubleClick.exe` and `PenHold.exe` are the same program; it reads its own file name to know which gesture fired (Windows cannot pass arguments to pen-shortcut programs).
 - Keys are sent with `keybd_event`, with the extended-key flag where needed (right Alt, arrows, ...).
 - Screenshots use the window's visible bounds (`DWMWA_EXTENDED_FRAME_BOUNDS`) with per-monitor DPI awareness, so they are sharp at 150 to 200% scaling. The image stays on the clipboard after the program exits.
+- The laser pointer is a click-through, never-focused layered window drawn with per-pixel alpha (`UpdateLayeredWindow`). It follows the cursor, which the pen moves while hovering. A second press signals the running instance through a named event to close.
 - The snip/paste step is remembered in `%LOCALAPPDATA%\PenButton\PenSnip.state`. Delete it to make the next press a screenshot.
 - Everything is built with the .NET Framework 4.x `csc.exe` that ships with Windows (C# 5, WinForms). No installer, no background process, no network access.
 
@@ -102,6 +112,7 @@ Not sure what a window is called? Turn on `Log=true`, press the pen button in th
 - Windows blocks simulated keys to apps running as administrator (UIPI), so key actions do nothing there.
 - Snip/paste only knows what it did last. If you paste by hand with Ctrl+V after a snip, the next pen press still pastes once.
 - Screenshots capture what is visible on screen, including anything covering the window.
+- The laser pointer follows the pen only while it hovers within about 1 to 2 cm of the screen; the Surface Pen has no motion sensor for pointing from a distance. Windows reports the button press but not its release, so the laser is a toggle rather than "on while held". Others see it when you share your whole screen; sharing a single window does not include it.
 - For Store (UWP) apps the program name is often `ApplicationFrameHost.exe`; match them by window title instead.
 
 ## Build from source
