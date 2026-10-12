@@ -36,9 +36,40 @@ static class Updater
 {
     public const string AssetName = "PenButton.exe";
 
+    public static Version Override;   // only for the CI self-test
+
     public static Version Current
     {
-        get { return Norm(new Version(AppInfo.Version)); }
+        get { return Norm(Override ?? new Version(AppInfo.Version)); }
+    }
+
+    // PenButton.exe --update-selftest --pretend-version 0.0.1
+    // Runs check, download, verify and swap against the real GitHub release, without a window.
+    // Writes update-selftest.txt next to the exe. Used by CI.
+    public static int SelfTest()
+    {
+        StringBuilder sb = new StringBuilder();
+        int code = 0;
+        try
+        {
+            string err;
+            UpdateInfo u = CheckLatest(out err);
+            sb.AppendLine("current " + Current);
+            sb.AppendLine(u == null ? "latest: none (" + err + ")" :
+                "latest " + u.Tag + " size=" + u.Size + " sha256=" + (u.Sha256.Length > 0 ? u.Sha256 : "-") + " url=" + u.DownloadUrl);
+            if (!IsNewer(u)) code = 3;
+            else
+            {
+                string f = Download(u);
+                sb.AppendLine("downloaded and verified " + f);
+                string e2;
+                if (Swap(SelfPath(), f, out e2)) sb.AppendLine("swapped");
+                else { sb.AppendLine("swap failed: " + e2); code = 4; }
+            }
+        }
+        catch (Exception ex) { sb.AppendLine("error: " + ex); code = 5; }
+        try { File.WriteAllText(Path.Combine(Path.GetDirectoryName(SelfPath()), "update-selftest.txt"), sb.ToString()); } catch (Exception) { }
+        return code;
     }
 
     // Major.Minor.Build only, so 2.3.0 and 2.3.0.0 compare equal.

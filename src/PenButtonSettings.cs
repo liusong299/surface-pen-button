@@ -42,7 +42,9 @@ static class PenButtonSettings
             else if (args[i] == "--lang" && i + 1 < args.Length) ForcedLanguage = args[++i];
             else if (args[i] == "--dir" && i + 1 < args.Length) dir = args[++i];
             else if (args[i] == "--updated") JustUpdated = true;
+            else if (args[i] == "--pretend-version" && i + 1 < args.Length) Updater.Override = new Version(args[++i]);
         }
+        if (Array.IndexOf(args, "--update-selftest") >= 0) return Updater.SelfTest();
 
         Application app = new Application();
         app.ShutdownMode = ShutdownMode.OnMainWindowClose;
@@ -179,8 +181,8 @@ static class Ui
 
     public static string GestureHint(string g)
     {
-        if (g == Gestures.Click) return L.T("轻按一下顶部按钮", "Press the top button once");
-        if (g == Gestures.DoubleClick) return L.T("快速按两下", "Press it twice quickly");
+        if (g == Gestures.Click) return L.T("轻按一下顶部按钮", "Press once");
+        if (g == Gestures.DoubleClick) return L.T("快速按两下", "Press twice quickly");
         return L.T("按住约一秒", "Hold for about a second");
     }
 

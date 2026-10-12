@@ -49,6 +49,20 @@ jobs:
           if (-not (Select-String -Path PenButton.log -Pattern "Hold .*action=none" -Quiet)) { throw "no Hold entry in the log" }
           Remove-Item PenButton.ini, PenButton.log
 
+      - name: Self-update works against the real GitHub release
+        if: github.event_name == 'push'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory upd | Out-Null
+          Copy-Item PenButton.exe upd\
+          $p = Start-Process -FilePath upd\PenButton.exe -ArgumentList '--update-selftest','--pretend-version','0.0.1' -PassThru -Wait
+          Get-Content upd\update-selftest.txt
+          if ($p.ExitCode -ne 0) { throw "self-update test exited with $($p.ExitCode)" }
+          if (-not (Test-Path upd\PenButton.exe.old)) { throw "the old exe was not kept as .old" }
+          $v = [Reflection.AssemblyName]::GetAssemblyName((Resolve-Path upd\PenButton.exe)).Version
+          Write-Host "after update: $v"
+          Remove-Item -Recurse -Force upd
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:
