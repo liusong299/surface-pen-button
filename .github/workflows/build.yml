@@ -1,0 +1,44 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build with the .NET Framework 4.x csc (same as on a user's PC)
+        shell: cmd
+        run: build.bat
+
+      - name: Run core tests
+        shell: cmd
+        run: |
+          "%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\csc.exe" /nologo /r:System.Drawing.dll /out:CoreTests.exe tests\CoreTests.cs src\Core.cs || exit /b 1
+          CoreTests.exe
+
+      - name: Package
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory dist | Out-Null
+          Copy-Item PenClick.exe,PenDoubleClick.exe,PenHold.exe,PenButtonSettings.exe,README.md,README.zh-CN.md,LICENSE dist/
+          Compress-Archive -Path dist/* -DestinationPath PenButton.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PenButton
+          path: PenButton.zip
+
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: PenButton.zip
