@@ -29,6 +29,9 @@ using IOPath = System.IO.Path;
 
 static class PenButtonSettings
 {
+    public static string ForcedLanguage;   // --lang zh|en (screenshots)
+    public static bool JustUpdated;        // started by the updater
+
     public static int Run(string[] args)
     {
         string dir = AppDomain.CurrentDomain.BaseDirectory;
@@ -36,8 +39,9 @@ static class PenButtonSettings
         for (int i = 0; i < args.Length; i++)
         {
             if (args[i] == "--render" && i + 1 < args.Length) render = args[++i];
-            else if (args[i] == "--lang" && i + 1 < args.Length) L.Zh = args[++i] == "zh";
+            else if (args[i] == "--lang" && i + 1 < args.Length) ForcedLanguage = args[++i];
             else if (args[i] == "--dir" && i + 1 < args.Length) dir = args[++i];
+            else if (args[i] == "--updated") JustUpdated = true;
         }
 
         Application app = new Application();
@@ -576,6 +580,11 @@ class SettingsUi
     readonly bool rendering;
     Config cfg;
     bool dirty, loading;
+    bool closingWithoutPrompt;
+    int page;
+    string updateFile;          // downloaded PenButton.exe.new, ready to switch to
+    UpdateInfo updateInfo;
+    bool checking;
 
     readonly Dictionary<string, ActionPicker> defaults = new Dictionary<string, ActionPicker>();
     readonly Dictionary<string, ActionPicker> editorPickers = new Dictionary<string, ActionPicker>();
@@ -605,11 +614,18 @@ class SettingsUi
             "Bind once. Later changes here need no re-binding." },
     };
 
-    public SettingsUi(string dir, bool rendering)
+    public SettingsUi(string dir, bool rendering) : this(dir, rendering, null, false, -1) { }
+
+    // carried / wasDirty / startAt: used when switching language, to keep unsaved edits and the page.
+    SettingsUi(string dir, bool rendering, Config carried, bool wasDirty, int startAt)
     {
         this.dir = dir;
         this.rendering = rendering;
         iniPath = IOPath.Combine(dir, AppInfo.IniName);
+
+        cfg = carried ?? Config.Load(iniPath, false);
+        if (PenButtonSettings.ForcedLanguage != null) L.Apply(PenButtonSettings.ForcedLanguage);
+        else L.Apply(cfg.GetString("Language", "auto"));
 
         Win = LoadWindow();
         root = (FrameworkElement)Win.Content;
@@ -632,9 +648,9 @@ class SettingsUi
         BuildBindPage();
         WireControls();
 
-        cfg = Config.Load(iniPath, false);
         if (rendering) AddSampleRule();
         LoadIntoUi();
+        if (rendering) SetUpdateStatus(L.T("已是最新版本", "You have the latest version"));
         ShowPage(0);
         SetStatus(File.Exists(iniPath)
             ? L.T("已读取 ", "Loaded ") + iniPath
@@ -656,8 +672,14 @@ class SettingsUi
             startPage = 4;
         }
 
+        if (startAt >= 0) startPage = startAt;
+        if (wasDirty) { dirty = true; UpdateDirty(); }
+        if (PenButtonSettings.JustUpdated && carried == null)
+            SetStatus(L.T("已更新到 v", "Updated to v") + AppInfo.Version, false);
+
         // Pick the first page once the window has loaded; WPF resets the radio buttons on load.
         Win.Loaded += delegate { ShowPage(startPage); };
+        if (!rendering) Win.Loaded += delegate { StartUpdates(carried != null); };
         Win.SourceInitialized += delegate { OnSourceInitialized(); };
         Win.Closing += OnClosing;
         countdown.Interval = TimeSpan.FromSeconds(1);
@@ -722,6 +744,7 @@ class SettingsUi
 
     void ShowPage(int n)
     {
+        page = n;
         for (int i = 0; i < Pages.Length; i++)
             Get<ScrollViewer>("Page" + i).Visibility = i == n ? Visibility.Visible : Visibility.Collapsed;
         Get<TextBlock>("PageTitle").Text = L.Zh ? Pages[n][0] : Pages[n][1];
@@ -903,6 +926,15 @@ class SettingsUi
     void WireControls()
     {
         Get<Button>("Save").Click += delegate { SaveNow(); };
+        Get<RadioButton>(L.Zh ? "LangZh" : "LangEn").IsChecked = true;
+        Get<RadioButton>("LangZh").Checked += delegate { SwitchLanguage("zh"); };
+        Get<RadioButton>("LangEn").Checked += delegate { SwitchLanguage("en"); };
+        Get<TextBlock>("CurrentVersion").Text = L.T("当前版本 v", "Version ") + AppInfo.Version;
+        Get<Button>("CheckUpdate").Click += delegate { StartCheck(true); };
+        Get<Button>("UpdateNow").Click += delegate { RestartToUpdate(); };
+        Get<Button>("UpdateNotes").Click += delegate { OpenReleasePage(); };
+        Get<CheckBox>("AutoUpdate").Checked += delegate { MarkDirty(); };
+        Get<CheckBox>("AutoUpdate").Unchecked += delegate { MarkDirty(); };
         Get<Button>("AddRule").Click += delegate { OpenEditor(-1); };
         Get<Button>("OpenLog").Click += delegate { OpenInNotepad(IOPath.Combine(dir, "PenButton.log")); };
         Get<Button>("OpenIni").Click += delegate { OpenIni(); };
@@ -974,6 +1006,7 @@ class SettingsUi
             Get<TextBox>("PreDelay").Text = cfg.GetInt("PreDelayMs", 100).ToString();
             Get<TextBox>("KeyHold").Text = cfg.GetInt("KeyHoldMs", 40).ToString();
             Get<CheckBox>("LogOn").IsChecked = cfg.GetBool("Log", false);
+            Get<CheckBox>("AutoUpdate").IsChecked = cfg.GetBool("AutoUpdate", true);
         }
         finally { loading = false; }
         dirty = false;
@@ -1000,6 +1033,7 @@ class SettingsUi
         cfg.Settings["PreDelayMs"] = Clamp(Get<TextBox>("PreDelay").Text, 0, 2000, 100);
         cfg.Settings["KeyHoldMs"] = Clamp(Get<TextBox>("KeyHold").Text, 0, 2000, 40);
         cfg.Settings["Log"] = Get<CheckBox>("LogOn").IsChecked == true ? "true" : "false";
+        cfg.Settings["AutoUpdate"] = Get<CheckBox>("AutoUpdate").IsChecked == true ? "true" : "false";
     }
 
     bool SaveNow()
@@ -1056,7 +1090,7 @@ class SettingsUi
 
     void OnClosing(object sender, System.ComponentModel.CancelEventArgs e)
     {
-        if (!dirty) return;
+        if (!dirty || closingWithoutPrompt) return;
         MessageBoxResult r = MessageBox.Show(Win, L.T("有修改还没保存，要保存吗？", "Save your changes?"), Win.Title,
             MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
         if (r == MessageBoxResult.Cancel) e.Cancel = true;
@@ -1395,6 +1429,134 @@ class SettingsUi
         Get<Grid>("PickerOverlay").Visibility = Visibility.Collapsed;
     }
 
+    // ----- language -----
+
+    void SwitchLanguage(string code)
+    {
+        if (loading || (code == "zh") == L.Zh) return;
+        // Remember the choice right away, without saving other unsaved changes.
+        try
+        {
+            Config disk = Config.Load(iniPath, false);
+            disk.Settings["Language"] = code;
+            disk.Save(iniPath);
+        }
+        catch (Exception) { }
+        ReadFromUi();                       // keep what is on screen, saved or not
+        cfg.Settings["Language"] = code;
+        L.Apply(code);
+
+        SettingsUi next = new SettingsUi(dir, false, cfg, dirty, page);
+        next.Win.WindowStartupLocation = WindowStartupLocation.Manual;
+        next.Win.Left = Win.Left;
+        next.Win.Top = Win.Top;
+        next.Win.Width = Win.Width;
+        next.Win.Height = Win.Height;
+        next.Win.WindowState = Win.WindowState;
+        next.updateFile = updateFile;
+        next.updateInfo = updateInfo;
+        Application.Current.MainWindow = next.Win;
+        next.Win.Show();
+        closingWithoutPrompt = true;
+        Win.Close();
+    }
+
+    // ----- updates -----
+
+    void StartUpdates(bool afterLanguageSwitch)
+    {
+        Updater.CleanupOld();
+        if (updateFile == null) updateFile = Updater.PendingDownload();
+        if (updateFile != null) { ShowUpdateReady(); return; }
+        if (afterLanguageSwitch) return;
+        if (cfg.GetBool("AutoUpdate", true)) StartCheck(false);
+        else SetUpdateStatus(L.T("自动更新已关闭", "Automatic updates are off"));
+    }
+
+    void SetUpdateStatus(string s) { Get<TextBlock>("UpdateStatus").Text = s; }
+
+    void StartCheck(bool manual)
+    {
+        if (checking) return;
+        if (updateFile != null) { ShowUpdateReady(); return; }
+        checking = true;
+        Get<Button>("CheckUpdate").IsEnabled = false;
+        SetUpdateStatus(L.T("正在检查更新…", "Checking for updates…"));
+        System.Threading.ThreadPool.QueueUserWorkItem(delegate
+        {
+            string error;
+            UpdateInfo info = Updater.CheckLatest(out error);
+            string file = null;
+            if (Updater.IsNewer(info))
+            {
+                try { file = Updater.Download(info); }
+                catch (Exception ex) { error = L.T("下载新版本失败：", "Could not download the new version: ") + ex.Message; }
+            }
+            Win.Dispatcher.BeginInvoke(new Action(delegate { CheckDone(manual, info, file, error); }));
+        });
+    }
+
+    void CheckDone(bool manual, UpdateInfo info, string file, string error)
+    {
+        checking = false;
+        Get<Button>("CheckUpdate").IsEnabled = true;
+        string checkedAt = "  (" + DateTime.Now.ToString("HH:mm") + ")";
+        if (file != null)
+        {
+            updateInfo = info;
+            updateFile = file;
+            ShowUpdateReady();
+            return;
+        }
+        if (error != null)
+        {
+            SetUpdateStatus(error + checkedAt);
+            if (manual) SetStatus(error, true);
+            return;
+        }
+        SetUpdateStatus(L.T("已是最新版本", "You have the latest version") + checkedAt);
+        if (manual) SetStatus(L.T("已是最新版本", "You have the latest version"), false);
+    }
+
+    void ShowUpdateReady()
+    {
+        string v = updateInfo != null ? updateInfo.Tag : L.T("新版本", "A new version");
+        if (updateInfo == null)
+        {
+            try { v = "v" + Updater.Norm(AssemblyName.GetAssemblyName(updateFile).Version); } catch (Exception) { }
+        }
+        Get<TextBlock>("UpdateText").Text = L.T("新版本 " + v + " 已经下载好，重启 PenButton 就能用上", v + " is downloaded. Restart PenButton to use it.");
+        Get<Button>("UpdateNotes").Visibility = updateInfo != null && updateInfo.PageUrl.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
+        Get<Border>("UpdateBar").Visibility = Visibility.Visible;
+        SetUpdateStatus(L.T("新版本 " + v + " 已下载", v + " downloaded"));
+    }
+
+    void RestartToUpdate()
+    {
+        if (updateFile == null) return;
+        if (dirty)
+        {
+            MessageBoxResult r = MessageBox.Show(Win, L.T("更新前先保存当前修改吗？", "Save your changes before updating?"), Win.Title,
+                MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
+            if (r == MessageBoxResult.Cancel) return;
+            if (r == MessageBoxResult.Yes && !SaveNow()) return;
+        }
+        string error;
+        if (!Updater.ApplyAndRestart(updateFile, out error))
+        {
+            SetStatus(L.T("更新失败：", "Update failed: ") + error, true);
+            return;
+        }
+        closingWithoutPrompt = true;
+        Application.Current.Shutdown();
+    }
+
+    void OpenReleasePage()
+    {
+        string url = updateInfo != null && updateInfo.PageUrl.Length > 0 ? updateInfo.PageUrl : "https://github.com/" + AppInfo.Repo + "/releases";
+        try { Process.Start(url); } catch (Exception) { }
+    }
+
     // ----- misc -----
 
     void OpenInNotepad(string path)
@@ -1441,6 +1603,17 @@ class SettingsUi
         Snap(IOPath.Combine(outDir, "6-edit-rule.png"));
         OpenPicker();
         Snap(IOPath.Combine(outDir, "7-pick-window.png"));
+        Get<Grid>("PickerOverlay").Visibility = Visibility.Collapsed;
+        CloseEditor();
+
+        // What the update bar looks like (sample version number)
+        updateInfo = new UpdateInfo();
+        updateInfo.Tag = "v9.9.0";
+        updateInfo.PageUrl = "https://github.com/" + AppInfo.Repo + "/releases";
+        updateFile = "sample";
+        ShowUpdateReady();
+        ShowPage(0);
+        Snap(IOPath.Combine(outDir, "8-update.png"));
     }
 
     void Snap(string file)

@@ -14,7 +14,8 @@ using System.Text;
 
 static class AppInfo
 {
-    public const string Version = "2.2.0";
+    public const string Version = "2.3.0";
+    public const string Repo = "liusong299/surface-pen-button";   // GitHub owner/name, used for updates
     public const string MainExe = "PenButton.exe";
     public const string IniName = "PenButton.ini";
     public const string ClickExe = "PenClick.exe";
@@ -25,8 +26,16 @@ static class AppInfo
 // Very small UI-language helper: Chinese if Windows is set to Chinese, otherwise English.
 static class L
 {
-    public static bool Zh = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "zh";
+    public static readonly bool SystemZh = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "zh";
+    public static bool Zh = SystemZh;
     public static string T(string zh, string en) { return Zh ? zh : en; }
+
+    // Language setting in the ini: "zh", "en", or "auto" (follow Windows).
+    public static void Apply(string setting)
+    {
+        string s = (setting ?? "").Trim().ToLowerInvariant();
+        Zh = s == "zh" ? true : s == "en" ? false : SystemZh;
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -287,6 +296,8 @@ class Config
         new SettingDef("ToastMs", "800", "How long the label stays (ms)"),
         new SettingDef("ToastSnipText", "", "Label text. Leave empty to follow the Windows language (Chinese or English)."),
         new SettingDef("ToastPasteText", "", null),
+        new SettingDef("Language", "auto", "auto = follow Windows, zh = 中文, en = English"),
+        new SettingDef("AutoUpdate", "true", "Check GitHub for a new PenButton.exe when the settings window opens, and download it"),
         new SettingDef("Log", "false", "Write every press (program, window class, title, action) to PenButton.log"),
     };
 

@@ -23,7 +23,9 @@ jobs:
         shell: cmd
         run: |
           "%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\csc.exe" /nologo /codepage:65001 /r:System.Drawing.dll /out:CoreTests.exe tests\CoreTests.cs src\Core.cs || exit /b 1
-          CoreTests.exe
+          CoreTests.exe || exit /b 1
+          "%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\csc.exe" /nologo /codepage:65001 /r:System.Drawing.dll /r:System.Web.Extensions.dll /out:UpdaterTests.exe tests\UpdaterTests.cs src\Updater.cs src\Core.cs || exit /b 1
+          UpdaterTests.exe
 
       - name: Render the settings window to PNG (also creates the button programs)
         shell: cmd

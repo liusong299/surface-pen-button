@@ -451,7 +451,15 @@
           <TextBlock Text="{{Surface 笔按钮§Surface Pen button}}" Foreground="{StaticResource Text2}" FontSize="12"/>
         </StackPanel>
       </StackPanel>
-      <TextBlock x:Name="VersionText" DockPanel.Dock="Bottom" Foreground="{StaticResource Text3}" FontSize="12" Margin="12,0,0,2"/>
+      <StackPanel DockPanel.Dock="Bottom" Margin="8,0,0,2">
+        <Border Style="{StaticResource SegmentHost}" HorizontalAlignment="Left" ToolTip="{{界面语言§Language}}">
+          <StackPanel Orientation="Horizontal">
+            <RadioButton x:Name="LangZh" Style="{StaticResource Segment}" GroupName="lang" Content="中文"/>
+            <RadioButton x:Name="LangEn" Style="{StaticResource Segment}" GroupName="lang" Content="English"/>
+          </StackPanel>
+        </Border>
+        <TextBlock x:Name="VersionText" Foreground="{StaticResource Text3}" FontSize="12" Margin="4,10,0,0"/>
+      </StackPanel>
       <StackPanel>
         <RadioButton x:Name="Nav0" Style="{StaticResource Nav}" GroupName="nav" Tag="&#xE765;" Content="{{按钮动作§Actions}}" IsChecked="True"/>
         <RadioButton x:Name="Nav1" Style="{StaticResource Nav}" GroupName="nav" Tag="&#xE71D;" Content="{{按程序设置§Per app}}"/>
@@ -474,6 +482,16 @@
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0" Margin="36,30,36,4">
+          <Border x:Name="UpdateBar" Background="{StaticResource AccentSoft}" CornerRadius="10" Padding="14,10" Margin="0,0,0,18" Visibility="Collapsed">
+            <DockPanel>
+              <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button x:Name="UpdateNotes" Style="{StaticResource Secondary}" Height="30" Padding="12,0" Margin="0,0,8,0" FontWeight="Normal" Content="{{更新内容§What's new}}"/>
+                <Button x:Name="UpdateNow" Style="{StaticResource Primary}" Height="30" Padding="14,0" Content="{{重启并更新§Restart to update}}"/>
+              </StackPanel>
+              <TextBlock Text="&#xE896;" FontFamily="{StaticResource Icons}" Foreground="{StaticResource Accent}" FontSize="15" VerticalAlignment="Center" Margin="0,0,10,0"/>
+              <TextBlock x:Name="UpdateText" VerticalAlignment="Center" FontWeight="Medium" TextTrimming="CharacterEllipsis"/>
+            </DockPanel>
+          </Border>
           <TextBlock x:Name="PageTitle" Style="{StaticResource PageTitle}"/>
           <TextBlock x:Name="PageSub" Style="{StaticResource PageSub}"/>
         </StackPanel>
@@ -632,6 +650,30 @@
                       <StackPanel Margin="0,0,16,0">
                         <TextBlock Style="{StaticResource RowTitle}" Text="{{按键按住时长§Hold keys for}}"/>
                         <TextBlock Style="{StaticResource RowDesc}" Text="{{某个程序收不到按键时调大，例如 300§Raise it (for example to 300) if an app misses the key}}"/>
+                      </StackPanel>
+                    </DockPanel>
+                  </Border>
+                </StackPanel>
+              </Border>
+
+              <TextBlock Style="{StaticResource H2}" Text="{{更新§Updates}}"/>
+              <Border Style="{StaticResource Section}">
+                <StackPanel>
+                  <Border Style="{StaticResource FirstRow}">
+                    <DockPanel>
+                      <CheckBox x:Name="AutoUpdate" DockPanel.Dock="Right" Style="{StaticResource Switch}"/>
+                      <StackPanel Margin="0,0,16,0">
+                        <TextBlock Style="{StaticResource RowTitle}" Text="{{自动更新§Update automatically}}"/>
+                        <TextBlock Style="{StaticResource RowDesc}" Text="{{打开设置界面时到 GitHub 查看有没有新版本，有的话自动下载，点一下就能换上。按笔时不会联网§When this window opens, check GitHub for a new version and download it; one click switches to it. Pen presses never go online}}"/>
+                      </StackPanel>
+                    </DockPanel>
+                  </Border>
+                  <Border Style="{StaticResource Row}">
+                    <DockPanel>
+                      <Button x:Name="CheckUpdate" DockPanel.Dock="Right" Style="{StaticResource Secondary}" VerticalAlignment="Center" Content="{{检查更新§Check now}}"/>
+                      <StackPanel Margin="0,0,16,0">
+                        <TextBlock x:Name="CurrentVersion" Style="{StaticResource RowTitle}"/>
+                        <TextBlock x:Name="UpdateStatus" Style="{StaticResource RowDesc}"/>
                       </StackPanel>
                     </DockPanel>
                   </Border>
