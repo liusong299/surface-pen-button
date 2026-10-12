@@ -42,7 +42,7 @@ Default setup:
 ## Install
 
 1. Download `PenButton.exe` from [Releases](../../releases) and put it in a folder that will stay put, e.g. `C:\Tools\PenButton`.
-2. Run `PenButton.exe`. It opens the settings window and creates three small button programs next to itself: `PenClick.exe`, `PenDoubleClick.exe` and `PenHold.exe`.
+2. Run `PenButton.exe`. It opens the settings window and creates three small button programs next to itself: `PenClick.exe`, `PenDoubleClick.exe` and `PenHold.exe`. They have a grey icon, so they are easy to tell apart from `PenButton.exe` in the file picker.
 3. Open **Settings > Bluetooth & devices > Pen & Windows Ink > Pen shortcuts** (the **Pen setup** page has a button for it). For each gesture choose **Open a program** and pick:
    - Single click: `PenClick.exe`
    - Double-click: `PenDoubleClick.exe`
@@ -100,7 +100,7 @@ Not sure what a window is called? Turn on `Log=true`, press the pen button in th
 
 ## How it works
 
-- `PenClick.exe`, `PenDoubleClick.exe` and `PenHold.exe` are copies of `PenButton.exe`. The program reads its own file name to know which gesture fired (Windows cannot pass arguments to pen-shortcut programs); under its own name it opens the settings window. It refreshes the copies whenever they differ from itself.
+- `PenClick.exe`, `PenDoubleClick.exe` and `PenHold.exe` are one small program (`src/GestureProgram.cs` with `Core.cs` and `PenButton.cs`, grey icon) that `PenButton.exe` carries as an embedded resource and writes out under the three names. It reads its own file name to know which gesture fired (Windows cannot pass arguments to pen-shortcut programs). `PenButton.exe` rewrites the three files whenever they differ from the embedded one, for example after an update.
 - Keys are sent with `keybd_event`, with the extended-key flag where needed (right Alt, arrows, ...).
 - Screenshots use the window's visible bounds (`DWMWA_EXTENDED_FRAME_BOUNDS`) with per-monitor DPI awareness, so they are sharp at 150 to 200% scaling. The image stays on the clipboard after the program exits.
 - The snip/paste step is remembered in `%LOCALAPPDATA%\PenButton\PenSnip.state`. Delete it to make the next press a screenshot.
@@ -119,7 +119,7 @@ Not sure what a window is called? Turn on `Log=true`, press the pen button in th
 build.bat
 ```
 
-This makes `PenButton.exe`. Sources are in `src/`: `Program.cs` (entry point), `Core.cs` (ini model, rules, key names, Win32), `PenButton.cs` (the button actions), `PenButtonSettings.cs` and `SettingsWindow.xaml` (the settings window, WPF), `PenButton.ico` (drawn by `tools/make_icon.py`). The XAML is embedded as a resource and loaded with `XamlReader`, so no XAML compiler or Visual Studio is needed. Keep to C# 5 syntax (no `$""`, no `?.`) so the built-in compiler can build it. `tests/CoreTests.cs` covers the ini parser and rule matching. CI builds on Windows, runs the tests, and renders every page of the settings window to PNG (`PenButton.exe --render <folder> --lang en|zh`) so layout changes can be reviewed without a screen.
+This builds the small button program first, then `PenButton.exe` with it embedded. Sources are in `src/`: `Program.cs` (entry point of PenButton.exe), `GestureProgram.cs` (entry point of the button program), `Core.cs` (ini model, rules, key names, Win32), `PenButton.cs` (the button actions), `PenButtonSettings.cs` and `SettingsWindow.xaml` (the settings window, WPF), `PenButton.ico` and `PenGesture.ico` (drawn by `tools/make_icon.py`). The XAML is embedded as a resource and loaded with `XamlReader`, so no XAML compiler or Visual Studio is needed. Keep to C# 5 syntax (no `$""`, no `?.`) so the built-in compiler can build it. `tests/CoreTests.cs` covers the ini parser and rule matching. CI builds on Windows, runs the tests, and renders every page of the settings window to PNG (`PenButton.exe --render <folder> --lang en|zh`) so layout changes can be reviewed without a screen.
 
 ## License
 

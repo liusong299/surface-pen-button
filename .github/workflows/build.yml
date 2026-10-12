@@ -33,8 +33,19 @@ jobs:
           if exist shots\zh\error.txt (type shots\zh\error.txt & exit /b 1)
           if exist shots\en\error.txt (type shots\en\error.txt & exit /b 1)
           for %%F in (PenClick.exe PenDoubleClick.exe PenHold.exe) do if not exist %%F (echo %%F was not created & exit /b 1)
-          fc /b PenButton.exe PenHold.exe >nul || (echo PenHold.exe differs from PenButton.exe & exit /b 1)
+          fc /b PenClick.exe PenHold.exe >nul || (echo the button programs differ & exit /b 1)
+          fc /b PenButton.exe PenHold.exe >nul && (echo PenHold.exe should be the small program, not a copy of PenButton.exe & exit /b 1)
           dir *.exe
+
+      - name: The button program runs a gesture and exits
+        shell: pwsh
+        run: |
+          "[Default]`r`nClick=none`r`nDoubleClick=none`r`nHold=none`r`n[Settings]`r`nLog=true`r`n" | Set-Content -Encoding utf8 PenButton.ini
+          $p = Start-Process -FilePath .\PenHold.exe -PassThru -Wait
+          Get-Content PenButton.log
+          if ($p.ExitCode -ne 0) { throw "PenHold.exe exited with $($p.ExitCode)" }
+          if (-not (Select-String -Path PenButton.log -Pattern "Hold .*action=none" -Quiet)) { throw "no Hold entry in the log" }
+          Remove-Item PenButton.ini, PenButton.log
 
       - uses: actions/upload-artifact@v4
         if: always()

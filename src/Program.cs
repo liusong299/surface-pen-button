@@ -1,10 +1,8 @@
 // Program.cs
-// Entry point of PenButton.exe. One program does both jobs:
-//   PenButton.exe                 opens the settings window, and creates the three button
-//                                 programs next to itself (copies of itself)
-//   PenClick.exe / PenDoubleClick.exe / PenHold.exe
-//                                 run the action for that pen gesture (no window)
-// The program tells the two apart by its own file name.
+// Entry point of PenButton.exe: opens the settings window, and writes the three small
+// button programs (PenClick.exe, PenDoubleClick.exe, PenHold.exe; grey icon) next to itself.
+// Those are built from GestureProgram.cs and embedded here as a resource.
+// If PenButton.exe itself is renamed to a gesture name, it runs that gesture too.
 
 using System;
 using System.IO;

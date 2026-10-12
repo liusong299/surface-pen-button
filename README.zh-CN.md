@@ -42,7 +42,7 @@ Windows 的“笔快捷方式”只能给单击、双击、长按各绑定一个
 ## 安装
 
 1. 从 Releases 下载 `PenButton.exe`，放进一个不会再移动的文件夹，例如 `C:\Tools\PenButton`。
-2. 运行 `PenButton.exe`。它会打开设置界面，并在旁边自动生成三个按钮程序：`PenClick.exe`、`PenDoubleClick.exe`、`PenHold.exe`。
+2. 运行 `PenButton.exe`。它会打开设置界面，并在旁边自动生成三个按钮程序：`PenClick.exe`、`PenDoubleClick.exe`、`PenHold.exe`。这三个是灰色图标，选程序时很容易和 `PenButton.exe` 分开。
 3. 打开 设置 > 蓝牙和其他设备 > 笔和 Windows Ink > 笔快捷方式（设置界面的“绑定到笔”页有按钮可以直接打开），三种按法分别选“打开程序”，再选：
    - 单击：`PenClick.exe`
    - 双击：`PenDoubleClick.exe`
@@ -69,16 +69,17 @@ Windows 的“笔快捷方式”只能给单击、双击、长按各绑定一个
 
 | 文件 | 作用 |
 |---|---|
-| `src/Program.cs` | 程序入口：按自己的文件名决定是打开设置界面，还是执行某个按法的动作 |
+| `src/Program.cs` | `PenButton.exe` 的入口：打开设置界面，释放三个按钮程序 |
+| `src/GestureProgram.cs` | 三个按钮程序的入口：按自己的文件名执行对应按法的动作，没有界面 |
 | `src/Core.cs` | 公共部分：ini 的读写、匹配规则、按键名称、取前台窗口信息、Win32 调用 |
 | `src/PenButton.cs` | 按笔时执行的动作：发按键、截图/粘贴、小提示、日志 |
 | `src/PenButtonSettings.cs`、`src/SettingsWindow.xaml` | 设置界面（WPF）。界面布局和样式写在 XAML 里，编译时嵌进 exe，运行时读取，所以不需要 Visual Studio |
-| `src/PenButton.ico`、`tools/make_icon.py` | 程序图标，以及画图标的脚本 |
-| `build.bat` | 编译出 `PenButton.exe` |
+| `src/PenButton.ico`、`src/PenGesture.ico`、`tools/make_icon.py` | 主程序图标、按钮程序的灰色图标，以及画图标的脚本 |
+| `build.bat` | 先编译按钮程序，再把它嵌进去编译出 `PenButton.exe` |
 | `PenButton.ini` | 设置文件。第一次按笔或第一次在设置界面保存时自动生成 |
 | `tests/CoreTests.cs` | ini 解析和规则匹配的测试 |
 
-- 三个按钮程序是 `PenButton.exe` 的副本，靠自己的文件名分辨是哪种按法（Windows 的笔快捷方式不能给程序传参数）；用 `PenButton.exe` 这个名字运行时就打开设置界面。副本和自己不一样时（例如更新之后），它会自动重新生成。
+- 三个按钮程序其实是同一个小程序（`src/GestureProgram.cs` 加上 `Core.cs`、`PenButton.cs`，灰色图标），它嵌在 `PenButton.exe` 里面，由 `PenButton.exe` 释放成三个名字。它靠自己的文件名分辨是哪种按法（Windows 的笔快捷方式不能给程序传参数）。磁盘上的三个文件和嵌在里面的不一样时（例如更新之后），`PenButton.exe` 会自动重新写一遍。
 - 截图/粘贴的状态记在 `%LOCALAPPDATA%\PenButton\PenSnip.state`。顺序乱了就删掉它，下一次就会截图。在 Win+R 里输入 `%LOCALAPPDATA%\PenButton` 可以打开这个文件夹。
 - 不知道某个窗口叫什么：在“高级”里打开日志，在那个窗口里按一下笔，再打开日志看程序名、类名和标题。
 

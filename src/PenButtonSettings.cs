@@ -1,6 +1,6 @@
 // PenButtonSettings.cs
 // The settings window shown by PenButton.exe (WPF). Reads and writes PenButton.ini in the
-// same folder, and creates the three button programs (copies of PenButton.exe) next to it.
+// same folder, and writes the three small button programs next to it.
 // The layout and styles are in SettingsWindow.xaml, embedded as a resource and loaded
 // with XamlReader, so everything builds with the csc.exe that ships with Windows.
 // C# 5 / .NET Framework 4.x only.
@@ -1459,51 +1459,73 @@ class SettingsUi
 }
 
 // ---------------------------------------------------------------------------
-// The three button programs are copies of PenButton.exe. Create them, and refresh
-// them whenever PenButton.exe has changed (for example after an update).
+// The three button programs: a small program (grey icon) embedded in PenButton.exe as the
+// resource "PenGesture.exe". Write it out under the three names, and again whenever the
+// files on disk differ from it (for example after PenButton.exe was updated).
 // ---------------------------------------------------------------------------
 
 static class ButtonExes
 {
     public static readonly string[] Names = { AppInfo.ClickExe, AppInfo.DoubleClickExe, AppInfo.HoldExe };
 
-    // Returns true if any copy was created or replaced. error is set when a copy could not be written.
+    static byte[] Embedded()
+    {
+        using (Stream s = Assembly.GetExecutingAssembly().GetManifestResourceStream("PenGesture.exe"))
+        {
+            if (s == null) return null;
+            using (MemoryStream m = new MemoryStream())
+            {
+                s.CopyTo(m);
+                return m.ToArray();
+            }
+        }
+    }
+
+    // Returns true if any file was created or replaced. error is set when one could not be written.
     public static bool Ensure(string dir, out string error)
     {
         error = null;
         bool changed = false;
-        string self = Assembly.GetExecutingAssembly().Location;
-        byte[] me;
-        try { me = File.ReadAllBytes(self); }
+        byte[] exe;
+        try { exe = Embedded(); }
         catch (Exception ex) { error = ex.Message; return false; }
+        if (exe == null) { error = L.T("这个 PenButton.exe 里没有按钮程序，请重新下载或编译", "This PenButton.exe has no button program inside. Download or build it again."); return false; }
 
         foreach (string name in Names)
         {
             string target = IOPath.Combine(dir, name);
-            if (string.Equals(IOPath.GetFullPath(target), IOPath.GetFullPath(self), StringComparison.OrdinalIgnoreCase)) continue;
-            if (Same(target, me)) continue;
+            if (Same(target, exe)) continue;
             string problem = null;
             for (int attempt = 0; attempt < 5; attempt++)
             {
-                try { File.Copy(self, target, true); problem = null; changed = true; break; }
+                try
+                {
+                    string tmp = target + ".new";
+                    File.WriteAllBytes(tmp, exe);
+                    if (File.Exists(target)) File.Replace(tmp, target, null);
+                    else File.Move(tmp, target);
+                    problem = null;
+                    changed = true;
+                    break;
+                }
                 catch (UnauthorizedAccessException ex) { problem = ex.Message; break; }
                 catch (IOException ex) { problem = ex.Message; System.Threading.Thread.Sleep(200); }   // busy: a press may be running
             }
+            try { if (File.Exists(target + ".new")) File.Delete(target + ".new"); } catch (Exception) { }
             if (problem != null && error == null)
                 error = L.T("无法生成 ", "Could not create ") + name + L.T("：", ": ") + problem;
         }
         return changed;
     }
 
-    static bool Same(string path, byte[] me)
+    static bool Same(string path, byte[] exe)
     {
         try
         {
             if (!File.Exists(path)) return false;
-            FileInfo fi = new FileInfo(path);
-            if (fi.Length != me.Length) return false;
+            if (new FileInfo(path).Length != exe.Length) return false;
             byte[] other = File.ReadAllBytes(path);
-            for (int i = 0; i < me.Length; i++) if (other[i] != me[i]) return false;
+            for (int i = 0; i < exe.Length; i++) if (other[i] != exe[i]) return false;
             return true;
         }
         catch (Exception) { return false; }
