@@ -12,7 +12,7 @@ Windows lets each of the three pen-button gestures (click, double-click, press a
 
 - **Press any key or combo.** Right Alt to start voice typing (Typeless and similar apps), Enter to send a message, Ctrl+Enter to send an email, arrow keys, F-keys.
 - **Snip, then paste.** The first press copies a screenshot of the window you are in; the next press pastes it. A small label next to the pen says "Captured" or "Pasted".
-- **Per-app rules.** For example, in a PowerPoint slide show: click = next slide, double-click = previous slide (set up out of the box).
+- **Per-app rules.** For example, in Outlook: hold = Ctrl+Enter to send the email.
 - **One small file, nothing to install.** No admin rights, no background process. It updates itself from this page.
 - **English and Chinese**, switchable at the bottom left of the window.
 
@@ -80,7 +80,6 @@ When adding a rule you don't need to know the program's name: click **Pick an op
 
 Ideas:
 
-- **PowerPoint slide show:** click = next slide, double-click = previous slide (included by default).
 - **Outlook:** hold = `Ctrl+Enter` to send the email.
 - **Chat apps:** hold = `Enter` to send; in apps where Enter makes a new line, use `Ctrl+Enter` or `Shift+Enter` instead.
 - **Browser web apps:** match by **Title contains**, for example `Gmail`.
@@ -106,8 +105,11 @@ Switch between 中文 and English at the bottom left of the window. The choice i
 **Nothing happens when I press the pen button.**
 Check the bindings in Pen shortcuts (step 3). Windows also blocks simulated keys to programs running as administrator, so key actions do nothing there. To see what PenButton did, turn on **Log every press** on the Advanced page and open the log.
 
-**PowerPoint (or another app) does its own thing with the pen button.**
-Turn off **Allow apps to override the shortcut button behavior** on the Pen shortcuts page.
+**What about PowerPoint slide shows?**
+PowerPoint already supports the pen: in a slide show, press the button once for the next slide and press and hold for the previous one. This works while **Allow apps to override the shortcut button behavior** is on in Pen shortcuts (the Windows default). PowerPoint then takes over the button during the slide show, so PenButton's settings do not apply there.
+
+**PowerPoint (or another app) does its own thing with the pen button, and I want PenButton's actions instead.**
+Turn off **Allow apps to override the shortcut button behavior** on the Pen shortcuts page. Then add a rule for the slide show if you like (match by window class `screenClass`, click = Right arrow, double-click = Left arrow).
 
 **Snip, then paste got out of step.**
 Snip and paste only remembers what it did last. If you pasted by hand, the next pen press still pastes once. Press again to start over, or set "Snip again after" on the Snip & label page.

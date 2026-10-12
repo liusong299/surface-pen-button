@@ -14,7 +14,7 @@ using System.Text;
 
 static class AppInfo
 {
-    public const string Version = "2.3.2";
+    public const string Version = "2.3.3";
     public const string Repo = "liusong299/surface-pen-button";   // GitHub owner/name, used for updates
     public const string MainExe = "PenButton.exe";
     public const string IniName = "PenButton.ini";
@@ -333,14 +333,8 @@ class Config
         Config c = new Config();
         foreach (SettingDef s in KnownSettings) c.Settings[s.Key] = s.Default;
 
-        Rule show = new Rule();
-        show.Kind = "class";
-        show.Patterns = new string[] { "screenClass", "PodiumParent" };
-        show.Comment = L.T("PowerPoint 放映和演示者视图：单击下一页，双击上一页",
-                           "PowerPoint slide show and Presenter View: click = next slide, double-click = previous slide");
-        show.Values[Gestures.Click] = "keys:Right";
-        show.Values[Gestures.DoubleClick] = "keys:Left";
-        c.Rules.Add(show);
+        // No per-app rules by default. (PowerPoint has its own pen-button support in slide
+        // shows: click = next, hold = previous, while Windows lets apps override the button.)
 
         c.Default = new Rule();
         c.Default.Kind = "default";
