@@ -146,16 +146,23 @@ static class KeySender
             if (i < keys.Count - 1) Thread.Sleep(15);
         }
         Thread.Sleep(holdMs);
-        for (int i = keys.Count - 1; i >= 0; i--)
+
+        // A chord of modifiers only (e.g. Right Alt + Right Shift) is let go in the order it was
+        // pressed, so the last key released is not the first one on its own. Apps such as
+        // Typeless read "Right Alt released alone" as a separate shortcut.
+        bool onlyModifiers = true;
+        foreach (KeyDef k in keys) if (!k.IsModifier) onlyModifiers = false;
+        for (int n = 0; n < keys.Count; n++)
         {
+            int i = onlyModifiers ? n : keys.Count - 1 - n;
             Send(keys[i], true);
-            if (i > 0) Thread.Sleep(15);
+            if (n < keys.Count - 1) Thread.Sleep(15);
         }
     }
 
     static void Send(KeyDef k, bool up)
     {
-        byte scan = (byte)Native.MapVirtualKey(k.Vk, 0);
+        byte scan = k.Scan != 0 ? k.Scan : (byte)Native.MapVirtualKey(k.Vk, 0);
         uint flags = 0;
         if (k.Extended) flags |= Native.KEYEVENTF_EXTENDEDKEY;
         if (up) flags |= Native.KEYEVENTF_KEYUP;

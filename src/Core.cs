@@ -14,7 +14,7 @@ using System.Text;
 
 static class AppInfo
 {
-    public const string Version = "2.3.3";
+    public const string Version = "2.3.4";
     public const string Repo = "liusong299/surface-pen-button";   // GitHub owner/name, used for updates
     public const string MainExe = "PenButton.exe";
     public const string IniName = "PenButton.ini";
@@ -153,7 +153,14 @@ struct KeyDef
 {
     public byte Vk;
     public bool Extended;
-    public KeyDef(byte vk, bool ext) { Vk = vk; Extended = ext; }
+    public byte Scan;   // 0 = ask Windows (MapVirtualKey)
+    public KeyDef(byte vk, bool ext) { Vk = vk; Extended = ext; Scan = 0; }
+    public KeyDef(byte vk, bool ext, byte scan) { Vk = vk; Extended = ext; Scan = scan; }
+
+    public bool IsModifier
+    {
+        get { return Vk == 0x10 || Vk == 0x11 || Vk == 0x12 || (Vk >= 0xA0 && Vk <= 0xA5) || Vk == 0x5B || Vk == 0x5C; }
+    }
 }
 
 static class KeyNames
@@ -165,7 +172,7 @@ static class KeyNames
         Dictionary<string, KeyDef> d = new Dictionary<string, KeyDef>(StringComparer.OrdinalIgnoreCase);
         d["Ctrl"] = new KeyDef(0x11, false); d["Control"] = d["Ctrl"];
         d["LCtrl"] = new KeyDef(0xA2, false); d["RCtrl"] = new KeyDef(0xA3, true);
-        d["Shift"] = new KeyDef(0x10, false); d["LShift"] = new KeyDef(0xA0, false); d["RShift"] = new KeyDef(0xA1, false);
+        d["Shift"] = new KeyDef(0x10, false); d["LShift"] = new KeyDef(0xA0, false, 0x2A); d["RShift"] = new KeyDef(0xA1, false, 0x36);
         d["Alt"] = new KeyDef(0x12, false); d["LAlt"] = new KeyDef(0xA4, false); d["RAlt"] = new KeyDef(0xA5, true);
         d["Win"] = new KeyDef(0x5B, true); d["LWin"] = d["Win"]; d["RWin"] = new KeyDef(0x5C, true);
         d["Enter"] = new KeyDef(0x0D, false); d["Return"] = d["Enter"];
