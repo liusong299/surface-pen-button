@@ -118,6 +118,9 @@ Store apps often run as `ApplicationFrameHost.exe`. Match them with **Title cont
 **Does it send anything over the internet?**
 Only the update check: when the settings window opens it asks GitHub for the latest release (`api.github.com`) and, if there is a newer one, downloads `PenButton.exe` from this repository. The pen-button programs never go online. Turn off **Update automatically** to stop it.
 
+**A button program still shows the old colored icon.**
+That is Windows' icon cache. Press F5 in Explorer; if it stays, press Win+R, run `ie4uinit.exe -show`, and the icons are redrawn.
+
 **How do I uninstall it?**
 Set the three pen shortcuts back to their defaults and delete the folder. Everything PenButton writes is in that folder (its settings `PenButton.ini` and the optional log), apart from a tiny state file in `%LOCALAPPDATA%\PenButton`.
 
