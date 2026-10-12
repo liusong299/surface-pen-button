@@ -643,6 +643,7 @@ class SettingsUi
 
         string exeError;
         bool created = ButtonExes.Ensure(dir, out exeError);
+        if (!rendering) ButtonExes.RefreshIcons(dir);
         SetAppIcon();
 
         BuildGestureRows();
@@ -1691,6 +1692,23 @@ static class ButtonExes
                 error = L.T("无法生成 ", "Could not create ") + name + L.T("：", ": ") + problem;
         }
         return changed;
+    }
+
+    [System.Runtime.InteropServices.DllImport("shell32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+    static extern void SHChangeNotify(int eventId, uint flags, string item1, IntPtr item2);
+
+    // Ask Explorer to redraw the files' icons; it otherwise keeps showing a cached old icon.
+    public static void RefreshIcons(string dir)
+    {
+        try
+        {
+            foreach (string name in Names)
+            {
+                string p = IOPath.Combine(dir, name);
+                if (File.Exists(p)) SHChangeNotify(0x00002000, 0x0005, p, IntPtr.Zero);   // SHCNE_UPDATEITEM, SHCNF_PATHW
+            }
+        }
+        catch (Exception) { }
     }
 
     static bool Same(string path, byte[] exe)

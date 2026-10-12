@@ -63,6 +63,16 @@ static class CoreTests
         Check(nd.Resolve(Gestures.Hold, W("x.exe", "c", "t"), out rule) == "keys:Enter", "no [Default] -> built-in default");
         Check(nd.GetBool("Log", false), "bool setting");
 
+        // Old 2.0 ini with the removed laser pointer
+        Config old = Config.Parse("[Settings]\nLaserColor=#FF0000\nLaserSize=22\nSnipResetSeconds=60\n\n" +
+            "; PowerPoint slide show and Presenter View: click = next slide, double-click = previous slide,\n; press and hold = laser pointer on/off\n" +
+            "[class:screenClass|PodiumParent]\nClick=keys:Right\nDoubleClick=keys:Left\nHold=laser\n\n[Default]\nHold=keys:Enter\n");
+        Check(!old.Rules[0].Values.ContainsKey(Gestures.Hold), "laser action dropped from the rule");
+        Check(old.Rules[0].Values[Gestures.Click] == "keys:Right", "rest of the rule kept");
+        Check(old.Resolve(Gestures.Hold, W("POWERPNT.EXE", "screenClass", "x"), out rule) == "keys:Enter", "hold falls back to default");
+        Check(!old.Settings.ContainsKey("LaserColor") && old.GetInt("SnipResetSeconds", 0) == 60, "laser settings dropped, others kept");
+        Check(old.Rules[0].Comment.IndexOf("laser", StringComparison.OrdinalIgnoreCase) < 0, "laser note removed from the comment");
+
         // Actions
         Check(ActionSpec.Parse("keys:Ctrl+Enter").Problem() == null, "valid combo");
         Check(ActionSpec.Parse("keys:Ctrl+Entr").Problem() != null, "typo in key is reported");
