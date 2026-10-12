@@ -14,7 +14,7 @@ using System.Text;
 
 static class AppInfo
 {
-    public const string Version = "2.3.0";
+    public const string Version = "2.3.1";
     public const string Repo = "liusong299/surface-pen-button";   // GitHub owner/name, used for updates
     public const string MainExe = "PenButton.exe";
     public const string IniName = "PenButton.ini";
@@ -444,7 +444,28 @@ class Config
         }
 
         if (c.Default == null) c.Default = CreateDefault().Default;
+        c.DropRemovedFeatures();
         return c;
+    }
+
+    // Version 2.0 briefly had a laser pointer. Its action and settings are no longer known;
+    // drop them so old ini files load and save without errors (the gesture falls back to [Default]).
+    void DropRemovedFeatures()
+    {
+        List<Rule> all = new List<Rule>(Rules);
+        if (Default != null) all.Add(Default);
+        foreach (Rule r in all)
+            foreach (string g in Gestures.All)
+            {
+                string v;
+                if (r.Values.TryGetValue(g, out v) && v.Trim().Equals("laser", StringComparison.OrdinalIgnoreCase)) r.Values.Remove(g);
+            }
+        List<string> drop = new List<string>();
+        foreach (string k in Settings.Keys) if (k.StartsWith("Laser", StringComparison.OrdinalIgnoreCase)) drop.Add(k);
+        foreach (string k in drop) Settings.Remove(k);
+        foreach (Rule r in all)
+            if (r.Comment != null && r.Comment.IndexOf("laser", StringComparison.OrdinalIgnoreCase) >= 0)
+                r.Comment = r.Comment.Replace(",\npress and hold = laser pointer on/off", "").Replace("\npress and hold = laser pointer on/off", "").Replace(", press and hold = laser pointer on/off", "").TrimEnd(',', ' ');
     }
 
     public string ToIni()

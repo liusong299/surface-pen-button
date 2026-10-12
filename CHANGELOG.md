@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.3.1
+
+- Settings files from 2.0 that still contain the removed laser pointer load and save again (the laser entries are dropped)
+- Explorer is told to redraw the button programs' icons, so the new grey icon shows up right away
+
 ## 2.3.0
 
 - Switch the settings window between 中文 and English (bottom left); the choice is saved, and the labels next to the pen follow it
