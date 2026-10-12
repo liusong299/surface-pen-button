@@ -1,16 +1,15 @@
 // PenButton.cs
-// The program the Surface Pen top button starts.
+// What runs when the Surface Pen top button is pressed.
 //
 // Windows lets each pen gesture (single click, double click, press and hold)
-// start one .exe, without arguments. So this program is built under three names
-// and reads its own file name to know which gesture fired:
+// start one .exe, without arguments. PenButton.exe copies itself as
 //   PenClick.exe        single click
 //   PenDoubleClick.exe  double click
 //   PenHold.exe         press and hold
-// What each gesture does comes from PenButton.ini next to the exe
-// (edit it with PenButtonSettings.exe or Notepad).
+// and Program.cs sends those names here. What each gesture does comes from
+// PenButton.ini next to the exe (edit it in PenButton.exe or with Notepad).
 //
-// Built by build.bat together with Core.cs. C# 5 / .NET Framework 4.x only.
+// C# 5 / .NET Framework 4.x only.
 
 using System;
 using System.Collections.Generic;
@@ -26,24 +25,14 @@ using System.Windows.Forms;
 
 static class PenButton
 {
-    [STAThread]
-    static int Main(string[] args)
+    public static int RunGesture(string gesture)
     {
         Native.EnableDpiAwareness(true);
 
         string exeDir = AppDomain.CurrentDomain.BaseDirectory;
-        string exeName = Path.GetFileNameWithoutExtension(Application.ExecutablePath);
-        string gesture = Gestures.Detect(exeName, args);
-
         Config cfg = Config.Load(Path.Combine(exeDir, AppInfo.IniName), true);
         Log log = new Log(cfg.GetBool("Log", false), exeDir);
         foreach (string w in cfg.Warnings) log.Write("ini: " + w);
-
-        if (gesture == null)
-        {
-            log.Write("Unknown gesture. The exe should be named PenClick, PenDoubleClick or PenHold (was '" + exeName + "').");
-            return 2;
-        }
 
         // Let the pen-button event finish before we look at the foreground window or send keys.
         Thread.Sleep(Math.Max(0, cfg.GetInt("PreDelayMs", 100)));

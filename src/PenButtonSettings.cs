@@ -1,10 +1,11 @@
 // PenButtonSettings.cs
-// Settings window for PenButton (WPF). Reads and writes PenButton.ini in the same folder.
+// The settings window shown by PenButton.exe (WPF). Reads and writes PenButton.ini in the
+// same folder, and creates the three button programs (copies of PenButton.exe) next to it.
 // The layout and styles are in SettingsWindow.xaml, embedded as a resource and loaded
 // with XamlReader, so everything builds with the csc.exe that ships with Windows.
 // C# 5 / .NET Framework 4.x only.
 //
-// PenButtonSettings.exe --render <folder> [--lang zh|en]
+// PenButton.exe --render <folder> [--lang zh|en] [--dir <folder>]
 //   writes a PNG of every page (used by CI to check the layout without a screen).
 
 using System;
@@ -28,8 +29,7 @@ using IOPath = System.IO.Path;
 
 static class PenButtonSettings
 {
-    [STAThread]
-    static int Main(string[] args)
+    public static int Run(string[] args)
     {
         string dir = AppDomain.CurrentDomain.BaseDirectory;
         string render = null;
@@ -623,6 +623,10 @@ class SettingsUi
             Get<RadioButton>("Nav" + i).Checked += delegate { ShowPage(n); };
         }
 
+        string exeError;
+        bool created = ButtonExes.Ensure(dir, out exeError);
+        SetAppIcon();
+
         BuildGestureRows();
         BuildEditorRows();
         BuildBindPage();
@@ -638,6 +642,18 @@ class SettingsUi
         if (cfg.Warnings.Count > 0)
             SetStatus(L.T("ini 里有 ", "The ini has ") + cfg.Warnings.Count +
                       L.T(" 行无法识别，保存时会被去掉", " unreadable line(s); they will be dropped on save"), true);
+        if (created && !rendering)
+        {
+            SetStatus(L.T("已在本文件夹生成三个按钮程序，请到“绑定到笔”页完成绑定", "Created the three button programs in this folder. See Pen setup to bind them."), false);
+            ShowPage(4);
+        }
+        if (exeError != null) { SetStatus(exeError, true); ShowPage(4); }
+        else if (ButtonExes.LooksTemporary(dir))
+        {
+            SetStatus(L.T("PenButton.exe 现在在临时文件夹里。请先把它放到一个固定的文件夹（例如 C:\\Tools\\PenButton）再运行",
+                          "PenButton.exe is in a temporary folder. Move it to a folder that will stay put (e.g. C:\\Tools\\PenButton) and run it again."), true);
+            ShowPage(4);
+        }
 
         Win.SourceInitialized += delegate { OnSourceInitialized(); };
         Win.Closing += OnClosing;
@@ -654,6 +670,23 @@ class SettingsUi
         xaml = Regex.Replace(xaml, "\\{\\{(.*?)§(.*?)\\}\\}",
             delegate (Match m) { return SecurityElement.Escape(L.Zh ? m.Groups[1].Value : m.Groups[2].Value); });
         return (Window)XamlReader.Parse(xaml);
+    }
+
+    void SetAppIcon()
+    {
+        try
+        {
+            using (Stream s = Assembly.GetExecutingAssembly().GetManifestResourceStream("PenButton.ico"))
+            {
+                IconBitmapDecoder dec = new IconBitmapDecoder(s, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
+                BitmapFrame best = dec.Frames[0];
+                foreach (BitmapFrame f in dec.Frames) if (f.PixelWidth > best.PixelWidth) best = f;
+                Image img = Get<Image>("AppIcon");
+                img.Source = best;
+                RenderOptions.SetBitmapScalingMode(img, BitmapScalingMode.HighQuality);
+            }
+        }
+        catch (Exception) { }
     }
 
     T Get<T>(string name) where T : class
@@ -764,6 +797,8 @@ class SettingsUi
         StackPanel steps = Get<StackPanel>("Steps");
         string[] lines =
         {
+            L.T("把 PenButton.exe 放在一个固定的文件夹里，例如 C:\\Tools\\PenButton。运行它时，它会在旁边自动生成下面三个按钮程序。",
+                "Keep PenButton.exe in a folder that will stay put, e.g. C:\\Tools\\PenButton. When it runs, it creates the three button programs below next to itself."),
             L.T("打开 设置 > 蓝牙和其他设备 > 笔和 Windows Ink > 笔快捷方式。",
                 "Open Settings > Bluetooth & devices > Pen & Windows Ink > Pen shortcuts."),
             L.T("单击、双击、长按分别选“打开程序”，再选下面对应的程序。",
@@ -851,7 +886,7 @@ class SettingsUi
             exe.Margin = new Thickness(10, 1, 0, 0);
             title.Children.Add(exe);
             txt.Children.Add(title);
-            TextBlock p = Ui.Text(exists ? full : L.T("未找到，请先运行 build.bat", "Not found. Run build.bat first."), "RowDesc");
+            TextBlock p = Ui.Text(exists ? full : L.T("未能生成，请确认这个文件夹可以写入", "Could not be created. Check that this folder is writable."), "RowDesc");
             if (!exists) p.Foreground = Ui.Danger;
             p.TextTrimming = TextTrimming.CharacterEllipsis;
             txt.Children.Add(p);
@@ -1417,5 +1452,68 @@ class SettingsUi
         PngBitmapEncoder enc = new PngBitmapEncoder();
         enc.Frames.Add(BitmapFrame.Create(bmp));
         using (FileStream fs = File.Create(file)) enc.Save(fs);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// The three button programs are copies of PenButton.exe. Create them, and refresh
+// them whenever PenButton.exe has changed (for example after an update).
+// ---------------------------------------------------------------------------
+
+static class ButtonExes
+{
+    public static readonly string[] Names = { AppInfo.ClickExe, AppInfo.DoubleClickExe, AppInfo.HoldExe };
+
+    // Returns true if any copy was created or replaced. error is set when a copy could not be written.
+    public static bool Ensure(string dir, out string error)
+    {
+        error = null;
+        bool changed = false;
+        string self = Assembly.GetExecutingAssembly().Location;
+        byte[] me;
+        try { me = File.ReadAllBytes(self); }
+        catch (Exception ex) { error = ex.Message; return false; }
+
+        foreach (string name in Names)
+        {
+            string target = IOPath.Combine(dir, name);
+            if (string.Equals(IOPath.GetFullPath(target), IOPath.GetFullPath(self), StringComparison.OrdinalIgnoreCase)) continue;
+            if (Same(target, me)) continue;
+            string problem = null;
+            for (int attempt = 0; attempt < 5; attempt++)
+            {
+                try { File.Copy(self, target, true); problem = null; changed = true; break; }
+                catch (UnauthorizedAccessException ex) { problem = ex.Message; break; }
+                catch (IOException ex) { problem = ex.Message; System.Threading.Thread.Sleep(200); }   // busy: a press may be running
+            }
+            if (problem != null && error == null)
+                error = L.T("无法生成 ", "Could not create ") + name + L.T("：", ": ") + problem;
+        }
+        return changed;
+    }
+
+    static bool Same(string path, byte[] me)
+    {
+        try
+        {
+            if (!File.Exists(path)) return false;
+            FileInfo fi = new FileInfo(path);
+            if (fi.Length != me.Length) return false;
+            byte[] other = File.ReadAllBytes(path);
+            for (int i = 0; i < me.Length; i++) if (other[i] != me[i]) return false;
+            return true;
+        }
+        catch (Exception) { return false; }
+    }
+
+    public static bool LooksTemporary(string dir)
+    {
+        try
+        {
+            string d = IOPath.GetFullPath(dir).TrimEnd('\\') + "\\";
+            string t = IOPath.GetFullPath(IOPath.GetTempPath()).TrimEnd('\\') + "\\";
+            return d.StartsWith(t, StringComparison.OrdinalIgnoreCase);
+        }
+        catch (Exception) { return false; }
     }
 }

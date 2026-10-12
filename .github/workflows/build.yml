@@ -25,14 +25,16 @@ jobs:
           "%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\csc.exe" /nologo /codepage:65001 /r:System.Drawing.dll /out:CoreTests.exe tests\CoreTests.cs src\Core.cs || exit /b 1
           CoreTests.exe
 
-      - name: Render the settings window to PNG
+      - name: Render the settings window to PNG (also creates the button programs)
         shell: cmd
         run: |
-          start /wait "" PenButtonSettings.exe --render shots\zh --lang zh --dir "%CD%"
-          start /wait "" PenButtonSettings.exe --render shots\en --lang en --dir "%CD%"
+          start /wait "" PenButton.exe --render shots\zh --lang zh --dir "%CD%"
+          start /wait "" PenButton.exe --render shots\en --lang en --dir "%CD%"
           if exist shots\zh\error.txt (type shots\zh\error.txt & exit /b 1)
           if exist shots\en\error.txt (type shots\en\error.txt & exit /b 1)
-          dir shots\zh
+          for %%F in (PenClick.exe PenDoubleClick.exe PenHold.exe) do if not exist %%F (echo %%F was not created & exit /b 1)
+          fc /b PenButton.exe PenHold.exe >nul || (echo PenHold.exe differs from PenButton.exe & exit /b 1)
+          dir *.exe
 
       - uses: actions/upload-artifact@v4
         if: always()
@@ -40,20 +42,13 @@ jobs:
           name: screenshots
           path: shots
 
-      - name: Package
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory dist | Out-Null
-          Copy-Item PenClick.exe,PenDoubleClick.exe,PenHold.exe,PenButtonSettings.exe,README.md,README.zh-CN.md,LICENSE dist/
-          Compress-Archive -Path dist/* -DestinationPath PenButton.zip
-
       - uses: actions/upload-artifact@v4
         with:
           name: PenButton
-          path: PenButton.zip
+          path: PenButton.exe
 
       - name: Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: PenButton.zip
+          files: PenButton.exe

@@ -1,6 +1,8 @@
+<img src="docs/icon.png" width="96" align="right" alt="PenButton 图标">
+
 # PenButton 中文说明
 
-给 Surface 笔顶部按钮加上更实用的功能。不依赖任何第三方软件，用 Windows 自带的 C# 编译器 `csc.exe` 编译。
+给 Surface 笔顶部按钮加上更实用的功能。只有一个 `PenButton.exe`，不依赖任何第三方软件，用 Windows 自带的 C# 编译器 `csc.exe` 编译。
 
 Windows 的“笔快捷方式”只能给单击、双击、长按各绑定一个程序。PenButton 就是这个程序：每种按法做什么，在设置界面（或 `.ini` 文件）里改，还可以按当前所在的程序做不同的事。
 
@@ -39,14 +41,17 @@ Windows 的“笔快捷方式”只能给单击、双击、长按各绑定一个
 
 ## 安装
 
-1. 把文件放进一个不会再移动的文件夹，例如 `C:\Tools\PenButton`，双击 `build.bat` 编译（也可以从 Releases 下载编译好的 `PenButton.zip`）。
-2. 打开 设置 → 蓝牙和其他设备 → 笔和 Windows Ink → 笔快捷方式，三种按法分别选“打开程序”，再选：
+1. 从 Releases 下载 `PenButton.exe`，放进一个不会再移动的文件夹，例如 `C:\Tools\PenButton`。
+2. 运行 `PenButton.exe`。它会打开设置界面，并在旁边自动生成三个按钮程序：`PenClick.exe`、`PenDoubleClick.exe`、`PenHold.exe`。
+3. 打开 设置 > 蓝牙和其他设备 > 笔和 Windows Ink > 笔快捷方式（设置界面的“绑定到笔”页有按钮可以直接打开），三种按法分别选“打开程序”，再选：
    - 单击：`PenClick.exe`
    - 双击：`PenDoubleClick.exe`
    - 长按：`PenHold.exe`
-3. 运行 `PenButtonSettings.exe` 修改各个按法的动作，点“保存”，下次按笔就生效。以后改设置不用重新绑定，也不用重新编译。
+4. 以后在 `PenButton.exe` 里改动作，点“保存”，下次按笔就生效，不用重新绑定。
 
-exe 没有数字签名，第一次运行时 Windows SmartScreen 可能会提示，选“更多信息 → 仍要运行”即可。
+更新版本时，用新的 `PenButton.exe` 替换旧的，再运行一次，它会自动更新三个按钮程序，绑定不用动。
+
+`PenButton.exe` 没有数字签名，第一次运行时 Windows SmartScreen 可能会提示，选“更多信息 > 仍要运行”即可。也可以自己用 `build.bat` 编译。
 
 如果 PowerPoint 等程序自己接管了笔按钮，在同一页里关掉“允许应用替代快捷方式按钮行为”。
 
@@ -64,24 +69,26 @@ exe 没有数字签名，第一次运行时 Windows SmartScreen 可能会提示�
 
 | 文件 | 作用 |
 |---|---|
+| `src/Program.cs` | 程序入口：按自己的文件名决定是打开设置界面，还是执行某个按法的动作 |
 | `src/Core.cs` | 公共部分：ini 的读写、匹配规则、按键名称、取前台窗口信息、Win32 调用 |
-| `src/PenButton.cs` | 笔按钮调用的程序：发按键、截图/粘贴、小提示、日志 |
+| `src/PenButton.cs` | 按笔时执行的动作：发按键、截图/粘贴、小提示、日志 |
 | `src/PenButtonSettings.cs`、`src/SettingsWindow.xaml` | 设置界面（WPF）。界面布局和样式写在 XAML 里，编译时嵌进 exe，运行时读取，所以不需要 Visual Studio |
-| `build.bat` | 编译出 `PenClick.exe`、`PenDoubleClick.exe`、`PenHold.exe`、`PenButtonSettings.exe` |
+| `src/PenButton.ico`、`tools/make_icon.py` | 程序图标，以及画图标的脚本 |
+| `build.bat` | 编译出 `PenButton.exe` |
 | `PenButton.ini` | 设置文件。第一次按笔或第一次在设置界面保存时自动生成 |
 | `tests/CoreTests.cs` | ini 解析和规则匹配的测试 |
 
-- 三个按钮 exe 其实是同一个程序，靠自己的文件名分辨是哪种按法（Windows 的笔快捷方式不能给程序传参数）。
+- 三个按钮程序是 `PenButton.exe` 的副本，靠自己的文件名分辨是哪种按法（Windows 的笔快捷方式不能给程序传参数）；用 `PenButton.exe` 这个名字运行时就打开设置界面。副本和自己不一样时（例如更新之后），它会自动重新生成。
 - 截图/粘贴的状态记在 `%LOCALAPPDATA%\PenButton\PenSnip.state`。顺序乱了就删掉它，下一次就会截图。在 Win+R 里输入 `%LOCALAPPDATA%\PenButton` 可以打开这个文件夹。
 - 不知道某个窗口叫什么：在“高级”里打开日志，在那个窗口里按一下笔，再打开日志看程序名、类名和标题。
 
 ## 修改代码时的约定
 
-1. 改完 `.cs` 文件后双击 `build.bat` 重新编译。exe 名字和路径不变，笔快捷方式不用重新绑定。
+1. 改完代码后双击 `build.bat` 重新编译，再运行一次 `PenButton.exe` 更新三个按钮程序。名字和路径不变，笔快捷方式不用重新绑定。
 2. 所有程序都编译为 `winexe`。编成控制台程序的话，运行时会弹出黑框并抢走焦点，按键就发不到原来的窗口了。
 3. 只用 .NET Framework 4.x 和 C# 5 的语法（系统自带的 `csc.exe` 版本较老）：不要用 `$"..."`、`?.` 等新语法，也不要引入 NuGet 包。
 4. 动作前的短暂等待（默认 100 ms）是为了让笔按钮事件先结束，不要去掉。
-5. 改界面后，GitHub 上的自动构建会把每一页渲染成图片（Actions 里的 screenshots），不用开机器就能检查排版。也可以自己运行 `PenButtonSettings.exe --render 文件夹 --lang zh`。
+5. 改界面后，GitHub 上的自动构建会把每一页渲染成图片（Actions 里的 screenshots），不用开机器就能检查排版。也可以自己运行 `PenButton.exe --render 文件夹 --lang zh`。
 6. 新的设置项加在 `Core.cs` 的 `KnownSettings` 里，并在设置界面加上对应控件；新的动作类型加在 `ActionSpec` 里，并在 `PenButton.cs` 的 `Actions.Run` 里实现。
 
 ## 已知限制

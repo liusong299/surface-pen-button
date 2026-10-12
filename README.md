@@ -1,8 +1,10 @@
+<img src="docs/icon.png" width="96" align="right" alt="PenButton icon">
+
 # PenButton
 
-Small, dependency-free tools that give the **Surface Pen top button** more useful actions on Windows 11.
+A small, dependency-free tool that give the **Surface Pen top button** more useful actions on Windows 11.
 
-Windows lets each of the three pen-button gestures (single click, double-click, press and hold) open one program. PenButton is that program. What it does is set in a simple settings window (or an `.ini` file), and it can do something different depending on the app you are in.
+Windows lets each of the three pen-button gestures (single click, double-click, press and hold) open one program. PenButton is that program, and it is a single `PenButton.exe`. What it does is set in a simple settings window (or an `.ini` file), and it can do something different depending on the app you are in.
 
 [中文说明](README.zh-CN.md)
 
@@ -39,20 +41,23 @@ Default setup:
 
 ## Install
 
-1. Download `PenButton.zip` from [Releases](../../releases) and unzip it to a folder that will stay put, e.g. `C:\Tools\PenButton`. Or clone this repo there and double-click `build.bat` (no Visual Studio needed; it uses the C# compiler built into Windows).
-2. Open **Settings > Bluetooth & devices > Pen & Windows Ink > Pen shortcuts**. For each gesture choose **Open a program** and pick:
+1. Download `PenButton.exe` from [Releases](../../releases) and put it in a folder that will stay put, e.g. `C:\Tools\PenButton`.
+2. Run `PenButton.exe`. It opens the settings window and creates three small button programs next to itself: `PenClick.exe`, `PenDoubleClick.exe` and `PenHold.exe`.
+3. Open **Settings > Bluetooth & devices > Pen & Windows Ink > Pen shortcuts** (the **Pen setup** page has a button for it). For each gesture choose **Open a program** and pick:
    - Single click: `PenClick.exe`
    - Double-click: `PenDoubleClick.exe`
    - Press and hold: `PenHold.exe`
-3. Run `PenButtonSettings.exe` to change what each gesture does. Click **Save**; the next press uses the new settings. No re-binding, no rebuild.
+4. Change what each gesture does in `PenButton.exe` and click **Save**. The next press uses the new settings. No re-binding.
 
-The exes are not code-signed, so Windows SmartScreen may warn the first time. Choose "More info > Run anyway", or build from source with `build.bat`.
+To update, replace `PenButton.exe` with the new one and run it once; it refreshes the three button programs. The bindings stay the same.
+
+`PenButton.exe` is not code-signed, so Windows SmartScreen may warn the first time. Choose "More info > Run anyway", or build it yourself with `build.bat` (no Visual Studio needed; it uses the C# compiler built into Windows).
 
 If PowerPoint or another app grabs the pen button itself, turn off **Allow apps to override the shortcut button behavior** on the same Pen shortcuts page.
 
 ## Settings file
 
-`PenButtonSettings.exe` reads and writes `PenButton.ini` next to the exes. You can also edit it in Notepad. It is created with these defaults on first run:
+`PenButton.exe` reads and writes `PenButton.ini` next to itself. You can also edit it in Notepad. It is created with these defaults on first run:
 
 ```ini
 [Settings]
@@ -95,11 +100,11 @@ Not sure what a window is called? Turn on `Log=true`, press the pen button in th
 
 ## How it works
 
-- `PenClick.exe`, `PenDoubleClick.exe` and `PenHold.exe` are the same program; it reads its own file name to know which gesture fired (Windows cannot pass arguments to pen-shortcut programs).
+- `PenClick.exe`, `PenDoubleClick.exe` and `PenHold.exe` are copies of `PenButton.exe`. The program reads its own file name to know which gesture fired (Windows cannot pass arguments to pen-shortcut programs); under its own name it opens the settings window. It refreshes the copies whenever they differ from itself.
 - Keys are sent with `keybd_event`, with the extended-key flag where needed (right Alt, arrows, ...).
 - Screenshots use the window's visible bounds (`DWMWA_EXTENDED_FRAME_BOUNDS`) with per-monitor DPI awareness, so they are sharp at 150 to 200% scaling. The image stays on the clipboard after the program exits.
 - The snip/paste step is remembered in `%LOCALAPPDATA%\PenButton\PenSnip.state`. Delete it to make the next press a screenshot.
-- Everything is built with the .NET Framework 4.x `csc.exe` that ships with Windows (C# 5, WinForms). No installer, no background process, no network access.
+- Everything is built with the .NET Framework 4.x `csc.exe` that ships with Windows (C# 5; WinForms for the button actions, WPF for the settings window). No installer, no background process, no network access.
 
 ## Known limits
 
@@ -114,7 +119,7 @@ Not sure what a window is called? Turn on `Log=true`, press the pen button in th
 build.bat
 ```
 
-Sources are in `src/`: `Core.cs` (ini model, rules, key names, Win32), `PenButton.cs` (the button program), `PenButtonSettings.cs` and `SettingsWindow.xaml` (the settings window, WPF). The XAML is embedded as a resource and loaded with `XamlReader`, so no XAML compiler or Visual Studio is needed. Keep to C# 5 syntax (no `$""`, no `?.`) so the built-in compiler can build it. `tests/CoreTests.cs` covers the ini parser and rule matching. CI builds on Windows, runs the tests, and renders every page of the settings window to PNG (`PenButtonSettings.exe --render <folder> --lang en|zh`) so layout changes can be reviewed without a screen.
+This makes `PenButton.exe`. Sources are in `src/`: `Program.cs` (entry point), `Core.cs` (ini model, rules, key names, Win32), `PenButton.cs` (the button actions), `PenButtonSettings.cs` and `SettingsWindow.xaml` (the settings window, WPF), `PenButton.ico` (drawn by `tools/make_icon.py`). The XAML is embedded as a resource and loaded with `XamlReader`, so no XAML compiler or Visual Studio is needed. Keep to C# 5 syntax (no `$""`, no `?.`) so the built-in compiler can build it. `tests/CoreTests.cs` covers the ini parser and rule matching. CI builds on Windows, runs the tests, and renders every page of the settings window to PNG (`PenButton.exe --render <folder> --lang en|zh`) so layout changes can be reviewed without a screen.
 
 ## License
 

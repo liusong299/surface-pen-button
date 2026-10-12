@@ -14,7 +14,8 @@ using System.Text;
 
 static class AppInfo
 {
-    public const string Version = "2.0.0";
+    public const string Version = "2.1.0";
+    public const string MainExe = "PenButton.exe";
     public const string IniName = "PenButton.ini";
     public const string ClickExe = "PenClick.exe";
     public const string DoubleClickExe = "PenDoubleClick.exe";
@@ -290,7 +291,7 @@ class Config
     };
 
     const string Header =
-@"; PenButton settings. Edit with PenButtonSettings.exe, or with Notepad.
+@"; PenButton settings. Edit with PenButton.exe, or with Notepad.
 ; Changes apply on the next pen-button press; no rebuild needed.
 ; Lines that start with ; are comments.
 ;

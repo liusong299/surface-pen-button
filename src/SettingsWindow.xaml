@@ -445,14 +445,7 @@
     <!-- Sidebar -->
     <DockPanel Grid.Column="0" Margin="16,16,10,16">
       <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="8,4,0,26">
-        <Border Width="36" Height="36" CornerRadius="10" Background="#18181B">
-          <Canvas Width="18" Height="18" HorizontalAlignment="Center" VerticalAlignment="Center">
-            <!-- pen -->
-            <Path Data="M3,15 L4.2,10.8 L12.6,2.4 A1.5,1.5 0 0 1 14.7,2.4 L15.6,3.3 A1.5,1.5 0 0 1 15.6,5.4 L7.2,13.8 Z"
-                  Stroke="White" StrokeThickness="1.6" StrokeLineJoin="Round"/>
-            <Ellipse Canvas.Left="12.2" Canvas.Top="11.6" Width="4.2" Height="4.2" Fill="#8B85FF"/>
-          </Canvas>
-        </Border>
+        <Image x:Name="AppIcon" Width="40" Height="40"/>
         <StackPanel Margin="11,0,0,0" VerticalAlignment="Center">
           <TextBlock Text="PenButton" FontWeight="SemiBold" FontSize="15"/>
           <TextBlock Text="{{Surface 笔按钮§Surface Pen button}}" Foreground="{StaticResource Text2}" FontSize="12"/>

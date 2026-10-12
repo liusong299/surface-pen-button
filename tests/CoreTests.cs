@@ -15,6 +15,8 @@ static class CoreTests
         Check(Gestures.Detect("PenDoubleClick", null) == Gestures.DoubleClick, "PenDoubleClick -> DoubleClick");
         Check(Gestures.Detect("PenHold", null) == Gestures.Hold, "PenHold -> Hold");
         Check(Gestures.Detect("PenButtonSettings", null) == null, "Settings exe is not a gesture");
+        Check(Gestures.Detect("PenButton", null) == null, "PenButton.exe opens the settings window");
+        Check(Gestures.Detect("PenButton", new string[] { "--render", "x" }) == null, "render argument is not a gesture");
         Check(Gestures.Detect("PenClick", new string[] { "hold" }) == Gestures.Hold, "argument overrides name");
 
         // Defaults
