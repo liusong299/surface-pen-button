@@ -14,7 +14,7 @@ using System.Text;
 
 static class AppInfo
 {
-    public const string Version = "2.3.1";
+    public const string Version = "2.3.2";
     public const string Repo = "liusong299/surface-pen-button";   // GitHub owner/name, used for updates
     public const string MainExe = "PenButton.exe";
     public const string IniName = "PenButton.ini";

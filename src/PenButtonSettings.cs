@@ -643,7 +643,7 @@ class SettingsUi
 
         string exeError;
         bool created = ButtonExes.Ensure(dir, out exeError);
-        if (!rendering) ButtonExes.RefreshIcons(dir);
+        if (!rendering) ButtonExes.RefreshIcons(dir, created);
         SetAppIcon();
 
         BuildGestureRows();
@@ -1698,7 +1698,9 @@ static class ButtonExes
     static extern void SHChangeNotify(int eventId, uint flags, string item1, IntPtr item2);
 
     // Ask Explorer to redraw the files' icons; it otherwise keeps showing a cached old icon.
-    public static void RefreshIcons(string dir)
+    // After the files were rewritten, also announce a global icon change, which makes every
+    // Explorer window drop its cached icons (the per-file notice alone is not always enough).
+    public static void RefreshIcons(string dir, bool filesChanged)
     {
         try
         {
@@ -1707,6 +1709,7 @@ static class ButtonExes
                 string p = IOPath.Combine(dir, name);
                 if (File.Exists(p)) SHChangeNotify(0x00002000, 0x0005, p, IntPtr.Zero);   // SHCNE_UPDATEITEM, SHCNF_PATHW
             }
+            if (filesChanged) SHChangeNotify(0x08000000, 0x0000, null, IntPtr.Zero);       // SHCNE_ASSOCCHANGED, SHCNF_IDLIST
         }
         catch (Exception) { }
     }

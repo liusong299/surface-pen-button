@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.3.2
+
+- After rewriting the button programs, tell Windows that icons changed, so Explorer drops its cached old icons
+
 ## 2.3.1
 
 - Settings files from 2.0 that still contain the removed laser pointer load and save again (the laser entries are dropped)
